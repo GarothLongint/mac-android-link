@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package maclink;
+
+option java_package = "com.maclink.android.proto";
+option java_outer_classname = "MacLinkProto";
+option swift_prefix = "ML";
+
+// ─── Envelope ────────────────────────────────────────────────────────────────
+// Every message sent over the WebSocket is wrapped in an Envelope.
+message Envelope {
+  string id        = 1; // UUID v4
+  int64  timestamp = 2; // Unix ms
+  oneof payload {
+    Handshake          handshake          = 10;
+    HandshakeAck       handshake_ack      = 11;
+    Notification       notification       = 20;
+    NotificationAction notification_action = 21;
+    CallEvent          call_event         = 30;
+    AudioOffer         audio_offer        = 40;
+    AudioAnswer        audio_answer       = 41;
+    IceCandidate       ice_candidate      = 42;
+    Heartbeat          heartbeat          = 50;
+  }
+}
+
+// ─── Handshake ────────────────────────────────────────────────────────────────
+message Handshake {
+  string device_name = 1;
+  string device_id   = 2; // persistent UUID
+  string version     = 3; // protocol version "1.0"
+}
+
+message HandshakeAck {
+  bool   accepted    = 1;
+  string mac_name    = 2;
+  string mac_id      = 3;
+  string reject_reason = 4; // only if accepted=false
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+message Notification {
+  string notification_key = 1;
+  string package_name     = 2;
+  string app_name         = 3;
+  string title            = 4;
+  string text             = 5;
+  string sub_text         = 6;
+  bytes  icon_png         = 7; // small app icon, compressed PNG
+  int64  posted_at        = 8;
+  repeated NotificationAction actions = 9;
+  bool   is_ongoing       = 10;
+  string group_key        = 11;
+}
+
+message NotificationAction {
+  string notification_key = 1;
+  string action_key       = 2;
+  string label            = 3;
+  string reply_text       = 4; // filled when action is a reply
+}
+
+// ─── Calls ────────────────────────────────────────────────────────────────────
+message CallEvent {
+  enum State {
+    INCOMING  = 0;
+    ACCEPTED  = 1;
+    REJECTED  = 2;
+    ENDED     = 3;
+    OUTGOING  = 4;
+  }
+  string call_id     = 1;
+  State  state       = 2;
+  string caller_name = 3;
+  string caller_number = 4;
+  bytes  caller_photo_png = 5;
+}
+
+// ─── WebRTC signaling ─────────────────────────────────────────────────────────
+message AudioOffer {
+  string call_id = 1;
+  string sdp     = 2;
+}
+
+message AudioAnswer {
+  string call_id = 1;
+  string sdp     = 2;
+}
+
+message IceCandidate {
+  string call_id         = 1;
+  string candidate       = 2;
+  string sdp_mid         = 3;
+  int32  sdp_mline_index = 4;
+}
+
+// ─── Heartbeat ────────────────────────────────────────────────────────────────
+message Heartbeat {
+  int64 sent_at = 1;
+}
