@@ -280,20 +280,24 @@ class CallDetectorService(private val context: Context) {
     fun rejectCall() {
         println("[CallDetector] rejectCall() — trying all methods")
 
-        // Metoda 1: Accessibility Service
+        // Metoda 1: Accessibility Service — endCall (aktywna rozmowa) lub rejectCall (przychodzące)
         if (CallAnswerAccessibilityService.isEnabled()) {
+            if (CallAnswerAccessibilityService.endCall()) {
+                println("[CallDetector] Ended via AccessibilityService (endCall) ✓")
+                return
+            }
             if (CallAnswerAccessibilityService.rejectCall()) {
-                println("[CallDetector] Rejected via AccessibilityService ✓")
+                println("[CallDetector] Rejected via AccessibilityService (rejectCall) ✓")
                 return
             }
         }
 
-        // Metoda 2: TelecomManager
+        // Metoda 2: TelecomManager.endCall() — wymaga CALL_PHONE
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             @Suppress("DEPRECATION")
             tm.endCall()
-            println("[CallDetector] Rejected via TelecomManager ✓")
+            println("[CallDetector] Ended via TelecomManager ✓")
             return
         } catch (e: Exception) {
             println("[CallDetector] TelecomManager failed: $e")

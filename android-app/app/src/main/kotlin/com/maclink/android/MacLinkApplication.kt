@@ -23,6 +23,7 @@ class MacLinkApplication : Application() {
     lateinit var discovery: NsdDiscovery
     lateinit var callDetector: CallDetectorService
     lateinit var audioStream: AudioStreamManager
+    var callDetectorInitialized = false
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -38,7 +39,7 @@ class MacLinkApplication : Application() {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             callDetector = CallDetectorService(this)
-            callDetector.init { envelope -> client.send(envelope) }
+            // Init zostanie wywołany z MainActivity po przyznaniu READ_PHONE_STATE
         }
 
         client.onEnvelopeReceived = { envelope -> handleIncoming(envelope) }

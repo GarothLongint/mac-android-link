@@ -33,7 +33,9 @@ class CallAnswerAccessibilityService : AccessibilityService() {
         private val ANSWER_RESOURCE_IDS = listOf(
             "com.samsung.android.dialer:id/answer_button",
             "com.samsung.android.dialer:id/incoming_call_answer_button",
+            "com.samsung.android.dialer:id/btn_incoming_call_accept",
             "com.samsung.android.incallui:id/answer_button",
+            "com.samsung.android.incallui:id/incoming_call_answer_button",
             "com.android.dialer:id/answer_button",
             "com.android.incallui:id/answer_button",
             "com.google.android.dialer:id/answer_button"
@@ -48,6 +50,18 @@ class CallAnswerAccessibilityService : AccessibilityService() {
             "com.google.android.dialer:id/decline_button"
         )
 
+        // Resource-id przycisku kończenia AKTYWNEJ rozmowy (inny niż odrzucenie)
+        private val END_CALL_RESOURCE_IDS = listOf(
+            "com.samsung.android.incallui:id/end_call_button",
+            "com.samsung.android.incallui:id/floating_end_call_button",
+            "com.samsung.android.incallui:id/btn_endcall",
+            "com.samsung.android.incallui:id/btn_end_call",
+            "com.samsung.android.dialer:id/end_call_button",
+            "com.android.incallui:id/end_call_button",
+            "com.android.incallui:id/floating_end_call_button",
+            "com.google.android.dialer:id/end_call_button"
+        )
+
         // Słowa kluczowe (contentDescription / text) w różnych językach
         private val ANSWER_KEYWORDS = listOf(
             "answer", "odbierz", "accept", "odbiór", "odebrać", "odebranie",
@@ -55,12 +69,18 @@ class CallAnswerAccessibilityService : AccessibilityService() {
         )
 
         private val REJECT_KEYWORDS = listOf(
-            "decline", "reject", "odrzuć", "zakończ", "end", "hang up",
+            "decline", "reject", "odrzuć",
             "btn_decline", "decline_call", "phone_decline", "reject call"
+        )
+
+        private val END_CALL_KEYWORDS = listOf(
+            "end", "zakończ", "hang up", "hangup", "rozłącz",
+            "end call", "zakończ połączenie", "btn_endcall"
         )
 
         fun answerCall(): Boolean = instance?.performAnswer() ?: false
         fun rejectCall(): Boolean = instance?.performReject() ?: false
+        fun endCall(): Boolean = instance?.performEndCall() ?: false
         fun isEnabled(): Boolean = instance != null
     }
 
@@ -99,6 +119,13 @@ class CallAnswerAccessibilityService : AccessibilityService() {
     fun performReject(): Boolean {
         Log.i(TAG, "performReject() called — searching all windows")
         return clickInAllWindows(DECLINE_RESOURCE_IDS, REJECT_KEYWORDS)
+    }
+
+    fun performEndCall(): Boolean {
+        Log.i(TAG, "performEndCall() called — searching all windows")
+        // Próbuj END_CALL najpierw, potem DECLINE (działa dla przychodzących)
+        return clickInAllWindows(END_CALL_RESOURCE_IDS, END_CALL_KEYWORDS)
+            || clickInAllWindows(DECLINE_RESOURCE_IDS, REJECT_KEYWORDS)
     }
 
     // MARK: - Multi-window search

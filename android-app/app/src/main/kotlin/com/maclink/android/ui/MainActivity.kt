@@ -41,6 +41,27 @@ class MainActivity : ComponentActivity() {
         println("[MainActivity] RECORD_AUDIO granted=$granted")
     }
 
+    private val requestAnswerCallsPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        println("[MainActivity] ANSWER_PHONE_CALLS granted=$granted")
+    }
+
+    private val requestCallPhonePermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        println("[MainActivity] CALL_PHONE granted=$granted")
+    }
+
+    // Poproś o wszystkie niebezpieczne uprawnienia związane z telefonią
+    private val requestMultiplePermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        results.forEach { (perm, granted) ->
+            println("[MainActivity] Permission $perm granted=$granted")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -53,8 +74,7 @@ class MainActivity : ComponentActivity() {
         }
 
         requestNotificationsAndStart()
-        requestPhonePermission()
-        requestRecordAudio()
+        requestAllPhonePermissions()
 
         setContent {
             MacLinkTheme {
@@ -63,17 +83,33 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun requestPhonePermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-            != PackageManager.PERMISSION_GRANTED) {
-            requestPhonePermission.launch(Manifest.permission.READ_PHONE_STATE)
+    private fun requestAllPhonePermissions() {
+        val needed = mutableListOf<String>()
+        val phonePerms = listOf(
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CALL_LOG,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.ANSWER_PHONE_CALLS,
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.RECORD_AUDIO
+        )
+        for (perm in phonePerms) {
+            if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
+                needed.add(perm)
+            }
         }
-    }
-
-    private fun requestRecordAudio() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
-            requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+        if (needed.isNotEmpty()) {
+            requestMultiplePermissions.launch(needed.toTypedArray())
+        }
+        // Init call detector if READ_PHONE_STATE already granted
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+            == PackageManager.PERMISSION_GRANTED) {
+            val app = application as MacLinkApplication
+            if (!app.callDetectorInitialized) {
+                app.callDetector.init { app.client.send(it) }
+                app.callDetectorInitialized = true
+            }
         }
     }
 
