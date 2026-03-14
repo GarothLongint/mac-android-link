@@ -39,6 +39,7 @@ class MacLinkClient(
     private var lastHost: String? = null
     private var lastPort: Int = 0
     private var reconnectAttempt = 0
+    private var connectionGeneration = 0   // rośnie przy każdym connect() — stare korutyny nie robią reconnect
 
     // MARK: - Connect / Disconnect
 
@@ -46,9 +47,10 @@ class MacLinkClient(
         manuallyDisconnected = false   // ręczne połączenie resetuje flagę
         lastHost = host
         lastPort = port
+        connectionGeneration++         // unieważnij wszystkie poprzednie korutyny
         reconnectJob?.cancel()
-        receiveJob?.cancel()               // anuluj poprzednie połączenie
-        runCatching { socket?.close() }    // zamknij stary socket
+        receiveJob?.cancel()
+        runCatching { socket?.close() }
         socket = null
         doConnect(host, port)
     }
@@ -65,6 +67,7 @@ class MacLinkClient(
     }
 
     private fun doConnect(host: String, port: Int) {
+        val myGeneration = connectionGeneration    // zapamiętaj swoją generację
         _state.value = ConnectionState.CONNECTING
         println("[TCP] Connecting to $host:$port (attempt ${reconnectAttempt + 1})")
 
@@ -113,7 +116,8 @@ class MacLinkClient(
 
             stopJobs()
             socket = null
-            if (_state.value != ConnectionState.DISCONNECTED) {
+            // Tylko bieżąca generacja może zaplanować reconnect — poprzednie są już nieaktualne
+            if (myGeneration == connectionGeneration && _state.value != ConnectionState.DISCONNECTED) {
                 _state.value = ConnectionState.ERROR
                 scheduleReconnect()
             }
@@ -168,13 +172,16 @@ class MacLinkClient(
 
     private fun scheduleReconnect() {
         val host = lastHost ?: return
-        // Szybki reconnect: 1s, 2s, 4s, 8s, max 15s (nie 60s)
+        val myGeneration = connectionGeneration
         val delayMs = minOf(1000L * (1 shl reconnectAttempt), 15_000L)
         reconnectAttempt++
         println("[TCP] Reconnect in ${delayMs}ms (attempt $reconnectAttempt)")
         reconnectJob = scope.launch {
             delay(delayMs)
-            if (lastHost != null) doConnect(host, lastPort)
+            // Sprawdź czy jesteśmy nadal aktualną generacją
+            if (myGeneration == connectionGeneration && lastHost != null) {
+                doConnect(host, lastPort)
+            }
         }
     }
 
