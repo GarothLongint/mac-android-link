@@ -40,13 +40,15 @@ class ConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        println("[ConnectionService] onCreate — starting foreground")
         createChannel()
         startForeground(NOTIF_ID, buildNotification(ConnectionState.DISCONNECTED))
+        println("[ConnectionService] startForeground called")
 
         val app = application as MacLinkApplication
-        // Obserwuj stan połączenia i aktualizuj powiadomienie
         stateJob = scope.launch {
             app.client.state.collect { state ->
+                println("[ConnectionService] State changed: $state")
                 updateNotification(state)
             }
         }
