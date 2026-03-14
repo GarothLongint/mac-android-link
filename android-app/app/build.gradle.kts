@@ -42,9 +42,6 @@ dependencies {
     // Protobuf Lite
     implementation("com.google.protobuf:protobuf-kotlin-lite:3.25.3")
 
-    // WebSocket
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 

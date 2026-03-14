@@ -19,12 +19,9 @@ final class ConnectionManager: ObservableObject {
     // MARK: - Server lifecycle
 
     func startServer() {
+        // Plain TCP — no WebSocket layer. Protocol: 4-byte big-endian length + Protobuf bytes.
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
-
-        let wsOptions = NWProtocolWebSocket.Options()
-        wsOptions.autoReplyPing = true
-        params.defaultProtocolStack.applicationProtocols.insert(wsOptions, at: 0)
 
         guard let listener = try? NWListener(using: params, on: NWEndpoint.Port(rawValue: Self.port)!) else {
             print("[Server] Failed to create listener")
@@ -77,12 +74,33 @@ final class ConnectionManager: ObservableObject {
     // MARK: - Message receiving (length-prefixed binary Protobuf)
 
     private func receiveNextMessage(on connection: NWConnection) {
-        connection.receiveMessage { [weak self] data, context, isComplete, error in
+    // MARK: - Message receiving (length-prefixed: 4 bytes big-endian + Protobuf data)
+
+    private func receiveNextMessage(on connection: NWConnection) {
+        // Step 1: read 4-byte length header
+        connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] data, _, _, error in
             if let error {
-                print("[Server] Receive error: \(error)")
+                print("[Server] Receive error (header): \(error)")
                 return
             }
-            if let data, !data.isEmpty {
+            guard let header = data, header.count == 4 else { return }
+            let length = Int(header.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
+            guard length > 0, length < 10_000_000 else {
+                print("[Server] Invalid message length: \(length)")
+                return
+            }
+            // Step 2: read exactly `length` bytes
+            self?.receiveBody(length: length, on: connection)
+        }
+    }
+
+    private func receiveBody(length: Int, on connection: NWConnection) {
+        connection.receive(minimumIncompleteLength: length, maximumLength: length) { [weak self] data, _, _, error in
+            if let error {
+                print("[Server] Receive error (body): \(error)")
+                return
+            }
+            if let data, data.count == length {
                 self?.handleData(data, on: connection)
             }
             self?.receiveNextMessage(on: connection)
@@ -179,10 +197,11 @@ final class ConnectionManager: ObservableObject {
     }
 
     private func sendEnvelope(_ envelope: Maclink_Envelope, on connection: NWConnection) {
-        guard let data = try? envelope.serializedData() else { return }
-        let metadata = NWProtocolWebSocket.Metadata(opcode: .binary)
-        let context = NWConnection.ContentContext(identifier: "ws", metadata: [metadata])
-        connection.send(content: data, contentContext: context, isComplete: true, completion: .idempotent)
+        guard let body = try? envelope.serializedData() else { return }
+        // 4-byte big-endian length header + body
+        var length = UInt32(body.count).bigEndian
+        let header = Data(bytes: &length, count: 4)
+        connection.send(content: header + body, completion: .idempotent)
     }
 
     private func sendHeartbeatAck(on connection: NWConnection) {

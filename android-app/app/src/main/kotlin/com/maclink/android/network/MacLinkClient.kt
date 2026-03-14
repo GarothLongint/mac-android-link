@@ -6,18 +6,16 @@ import com.maclink.android.proto.MacLinkProto.Heartbeat
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import okhttp3.*
-import okio.ByteString
-import okio.ByteString.Companion.toByteString
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.net.Socket
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 enum class ConnectionState { DISCONNECTED, CONNECTING, CONNECTED, ERROR }
 
 /**
- * WebSocket client that connects to the MacLink server on macOS.
- * All messages are binary Protobuf [Envelope] frames.
- * Automatically reconnects with exponential backoff on failure.
+ * Raw TCP client using 4-byte big-endian length-prefix framing + Protobuf.
+ * Avoids WebSocket handshake incompatibilities with macOS Network.framework.
  */
 class MacLinkClient(
     private val deviceName: String,
@@ -29,19 +27,15 @@ class MacLinkClient(
     var onEnvelopeReceived: ((Envelope) -> Unit)? = null
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .pingInterval(30, TimeUnit.SECONDS)
-        .build()
-
-    private var webSocket: WebSocket? = null
+    private var socket: Socket? = null
+    private var output: DataOutputStream? = null
+    private var receiveJob: Job? = null
     private var heartbeatJob: Job? = null
     private var reconnectJob: Job? = null
 
-    // Last known address for auto-reconnect
     private var lastHost: String? = null
     private var lastPort: Int = 0
+    private var reconnectAttempt = 0
 
     // MARK: - Connect / Disconnect
 
@@ -53,124 +47,115 @@ class MacLinkClient(
     }
 
     fun disconnect() {
-        lastHost = null  // clear so auto-reconnect won't trigger
-        stopHeartbeat()
-        reconnectJob?.cancel()
-        webSocket?.close(1000, "User disconnected")
-        webSocket = null
+        lastHost = null
+        stopJobs()
+        runCatching { socket?.close() }
+        socket = null
         _state.value = ConnectionState.DISCONNECTED
     }
 
     private fun doConnect(host: String, port: Int) {
         _state.value = ConnectionState.CONNECTING
-        val url = "ws://$host:$port"
-        println("[WS] Connecting to $url")
+        println("[TCP] Connecting to $host:$port")
 
-        val request = Request.Builder().url(url).build()
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) {
-                println("[WS] Connected")
+        receiveJob = scope.launch {
+            runCatching {
+                val s = Socket(host, port)
+                socket = s
+                output = DataOutputStream(s.getOutputStream())
+                val input = DataInputStream(s.getInputStream())
+
                 _state.value = ConnectionState.CONNECTED
-                reconnectJob?.cancel()
+                reconnectAttempt = 0
+                println("[TCP] Connected")
+
                 sendHandshake()
                 startHeartbeat()
-            }
 
-            override fun onMessage(ws: WebSocket, bytes: ByteString) {
-                try {
-                    val envelope = Envelope.parseFrom(bytes.toByteArray())
-                    onEnvelopeReceived?.invoke(envelope)
-                } catch (e: Exception) {
-                    println("[WS] Parse error: $e")
+                // Read loop: 4-byte length + body
+                while (isActive && !s.isClosed) {
+                    val length = runCatching { input.readInt() }.getOrNull() ?: break
+                    if (length <= 0 || length > 10_000_000) break
+                    val body = ByteArray(length)
+                    input.readFully(body)
+                    try {
+                        val envelope = Envelope.parseFrom(body)
+                        onEnvelopeReceived?.invoke(envelope)
+                    } catch (e: Exception) {
+                        println("[TCP] Parse error: $e")
+                    }
                 }
+            }.onFailure { e ->
+                println("[TCP] Error: $e")
             }
 
-            override fun onMessage(ws: WebSocket, text: String) {
-                println("[WS] Unexpected text frame: $text")
-            }
-
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
-                println("[WS] Failure: $t")
+            stopJobs()
+            socket = null
+            if (_state.value != ConnectionState.DISCONNECTED) {
                 _state.value = ConnectionState.ERROR
-                stopHeartbeat()
                 scheduleReconnect()
             }
-
-            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
-                println("[WS] Closed: $reason")
-                stopHeartbeat()
-                if (code != 1000) {
-                    // Unexpected close — try to reconnect
-                    _state.value = ConnectionState.DISCONNECTED
-                    scheduleReconnect()
-                } else {
-                    _state.value = ConnectionState.DISCONNECTED
-                }
-            }
-        })
+        }
     }
 
-    // MARK: - Auto-reconnect (exponential backoff: 2s, 4s, 8s … max 60s)
+    // MARK: - Send
 
-    private var reconnectAttempt = 0
+    fun send(envelope: Envelope) {
+        scope.launch {
+            runCatching {
+                val body = envelope.toByteArray()
+                output?.let { out ->
+                    out.writeInt(body.size)   // 4-byte big-endian length
+                    out.write(body)
+                    out.flush()
+                }
+            }.onFailure { println("[TCP] Send error: $it") }
+        }
+    }
+
+    private fun sendHandshake() {
+        val hs = Handshake.newBuilder()
+            .setDeviceName(deviceName)
+            .setDeviceId(deviceId)
+            .setVersion("1.0")
+            .build()
+        send(Envelope.newBuilder()
+            .setId(UUID.randomUUID().toString())
+            .setTimestamp(System.currentTimeMillis())
+            .setHandshake(hs)
+            .build())
+    }
+
+    // MARK: - Heartbeat
+
+    private fun startHeartbeat() {
+        heartbeatJob = scope.launch {
+            while (isActive) {
+                delay(30_000)
+                val hb = Heartbeat.newBuilder().setSentAt(System.currentTimeMillis()).build()
+                send(Envelope.newBuilder()
+                    .setId(UUID.randomUUID().toString())
+                    .setTimestamp(System.currentTimeMillis())
+                    .setHeartbeat(hb)
+                    .build())
+            }
+        }
+    }
+
+    // MARK: - Reconnect (exponential backoff)
 
     private fun scheduleReconnect() {
-        val host = lastHost ?: return  // no target — don't reconnect
-        reconnectJob?.cancel()
+        val host = lastHost ?: return
         val delayMs = minOf(2000L * (1 shl reconnectAttempt), 60_000L)
         reconnectAttempt++
-        println("[WS] Reconnect in ${delayMs}ms (attempt $reconnectAttempt)")
-
+        println("[TCP] Reconnect in ${delayMs}ms (attempt $reconnectAttempt)")
         reconnectJob = scope.launch {
             delay(delayMs)
             if (lastHost != null) doConnect(host, lastPort)
         }
     }
 
-    // MARK: - Sending
-
-    fun send(envelope: Envelope) {
-        val bytes = envelope.toByteArray().toByteString()
-        webSocket?.send(bytes)
-    }
-
-    private fun sendHandshake() {
-        reconnectAttempt = 0  // reset backoff on successful connect
-        val hs = Handshake.newBuilder()
-            .setDeviceName(deviceName)
-            .setDeviceId(deviceId)
-            .setVersion("1.0")
-            .build()
-
-        val envelope = Envelope.newBuilder()
-            .setId(UUID.randomUUID().toString())
-            .setTimestamp(System.currentTimeMillis())
-            .setHandshake(hs)
-            .build()
-
-        send(envelope)
-    }
-
-    // MARK: - Heartbeat (every 30s)
-
-    private fun startHeartbeat() {
-        heartbeatJob = scope.launch {
-            while (isActive) {
-                delay(30_000)
-                val hb = Heartbeat.newBuilder()
-                    .setSentAt(System.currentTimeMillis())
-                    .build()
-                val env = Envelope.newBuilder()
-                    .setId(UUID.randomUUID().toString())
-                    .setTimestamp(System.currentTimeMillis())
-                    .setHeartbeat(hb)
-                    .build()
-                send(env)
-            }
-        }
-    }
-
-    private fun stopHeartbeat() {
+    private fun stopJobs() {
         heartbeatJob?.cancel()
         heartbeatJob = null
     }
