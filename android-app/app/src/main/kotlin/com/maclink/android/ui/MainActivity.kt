@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.maclink.android.MacLinkApplication
 import com.maclink.android.network.NsdDiscovery
+import com.maclink.android.service.ConnectionService
 import com.maclink.android.service.PhoneNotificationListenerService
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
         }
 
         app.discovery.startDiscovery()
+        ConnectionService.start(this)  // ikonka w pasku statusu
 
         setContent {
             MacLinkTheme {
