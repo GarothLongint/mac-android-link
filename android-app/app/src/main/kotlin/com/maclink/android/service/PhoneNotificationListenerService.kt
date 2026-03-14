@@ -125,14 +125,15 @@ class PhoneNotificationListenerService : NotificationListenerService() {
         } ?: return
 
         val remoteInputs = action.remoteInputs ?: return
-        val intent = action.actionIntent ?: return
+        val pendingIntent = action.actionIntent ?: return
 
+        val fillIn = android.content.Intent()
         val inputBundle = android.os.Bundle()
         for (ri in remoteInputs) {
             inputBundle.putCharSequence(ri.resultKey, replyText)
         }
 
-        RemoteInput.addResultsToIntent(remoteInputs, intent.intent, inputBundle)
-        runCatching { intent.send(applicationContext, 0, intent.intent) }
+        RemoteInput.addResultsToIntent(remoteInputs, fillIn, inputBundle)
+        runCatching { pendingIntent.send(applicationContext, 0, fillIn) }
     }
 }
