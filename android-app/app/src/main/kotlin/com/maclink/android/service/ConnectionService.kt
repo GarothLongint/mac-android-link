@@ -42,7 +42,11 @@ class ConnectionService : Service() {
         super.onCreate()
         println("[ConnectionService] onCreate — starting foreground")
         createChannel()
-        startForeground(NOTIF_ID, buildNotification(ConnectionState.DISCONNECTED))
+        startForeground(
+            NOTIF_ID,
+            buildNotification(ConnectionState.DISCONNECTED),
+            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
         println("[ConnectionService] startForeground called")
 
         val app = application as MacLinkApplication

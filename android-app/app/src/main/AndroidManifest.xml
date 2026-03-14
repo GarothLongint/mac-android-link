@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <!-- Notifications listener -->
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
@@ -38,6 +39,7 @@
         <!-- Connection foreground service — ikonka w pasku statusu -->
         <service
             android:name=".service.ConnectionService"
+            android:foregroundServiceType="dataSync"
             android:exported="false" />
 
         <!-- Notification Listener Service -->
