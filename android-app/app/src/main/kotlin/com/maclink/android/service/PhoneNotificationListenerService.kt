@@ -32,6 +32,10 @@ class PhoneNotificationListenerService : NotificationListenerService() {
         )
 
         const val REPLY_KEY = "maclink_reply_text"
+
+        // Deduplikacja: key → postTime. Pomija powiadomienia które już wysłaliśmy.
+        private val sentNotifications = mutableMapOf<String, Long>()
+        private const val DEDUP_WINDOW_MS = 2000L
     }
 
     override fun onListenerConnected() {
@@ -45,6 +49,18 @@ class PhoneNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName in IGNORED_PACKAGES) return
+        // Pomiń powiadomienia ongoing (media player, nawigacja, itp.)
+        if (sbn.isOngoing) return
+
+        // Deduplikacja: to samo key w ciągu 2s → ignoruj (aktualizacje badge/ticker)
+        val lastSent = sentNotifications[sbn.key]
+        if (lastSent != null && (sbn.postTime - lastSent) < DEDUP_WINDOW_MS) return
+        sentNotifications[sbn.key] = sbn.postTime
+        // Wyczyść stare wpisy (max 200)
+        if (sentNotifications.size > 200) {
+            val oldest = sentNotifications.entries.sortedBy { it.value }.take(50)
+            oldest.forEach { sentNotifications.remove(it.key) }
+        }
 
         val extras = sbn.notification.extras
         val title = extras.getCharSequence("android.title")?.toString() ?: ""
