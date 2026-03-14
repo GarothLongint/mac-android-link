@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Laptop body (outer frame) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,30 Q20,26 24,26 L84,26 Q88,26 88,30 L88,72 Q88,76 84,76 L24,76 Q20,76 20,72 Z"/>
+
+    <!-- Laptop screen (dark inset) -->
+    <path
+        android:fillColor="#1a3a6b"
+        android:pathData="M24,30 L84,30 L84,72 L24,72 Z"/>
+
+    <!-- WiFi symbol on screen (white) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,58 m-3,0 a3,3 0 0,1 6,0 a3,3 0 0,1 -6,0"/>
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M46,54 Q54,46 62,54"/>
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M41,49 Q54,37 67,49"/>
+
+    <!-- Laptop base -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,76 L94,76 Q96,76 96,78 L96,80 Q96,82 94,82 L14,82 Q12,82 12,80 L12,78 Q12,76 14,76 Z"/>
+
+    <!-- Phone (overlapping bottom-right) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M68,52 Q68,48 72,48 L88,48 Q92,48 92,52 L92,88 Q92,92 88,92 L72,92 Q68,92 68,88 Z"/>
+
+    <!-- Phone screen -->
+    <path
+        android:fillColor="#1a3a6b"
+        android:pathData="M71,55 L89,55 L89,84 L71,84 Z"/>
+
+    <!-- Phone home indicator -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M77,87 Q80,85 83,87 Q80,89 77,87 Z"/>
+
+</vector>
