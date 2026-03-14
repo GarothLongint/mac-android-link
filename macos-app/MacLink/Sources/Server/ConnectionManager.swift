@@ -76,33 +76,57 @@ final class ConnectionManager: ObservableObject {
     // MARK: - Message receiving (length-prefixed: 4 bytes big-endian + Protobuf data)
 
     private func receiveNextMessage(on connection: NWConnection) {
-        // Step 1: read 4-byte length header
-        connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] data, _, _, error in
+        connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] data, _, isComplete, error in
+            guard let self else { return }
+
             if let error {
                 print("[Server] Receive error (header): \(error)")
+                self.handleDisconnect()
                 return
             }
-            guard let header = data, header.count == 4 else { return }
+            // isComplete=true + brak danych = Android zamknął połączenie
+            if isComplete && (data == nil || data!.isEmpty) {
+                print("[Server] Client disconnected (FIN)")
+                self.handleDisconnect()
+                return
+            }
+            guard let header = data, header.count == 4 else {
+                self.handleDisconnect()
+                return
+            }
             let length = Int(header.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
             guard length > 0, length < 10_000_000 else {
                 print("[Server] Invalid message length: \(length)")
                 return
             }
-            // Step 2: read exactly `length` bytes
-            self?.receiveBody(length: length, on: connection)
+            self.receiveBody(length: length, on: connection)
         }
     }
 
     private func receiveBody(length: Int, on connection: NWConnection) {
-        connection.receive(minimumIncompleteLength: length, maximumLength: length) { [weak self] data, _, _, error in
+        connection.receive(minimumIncompleteLength: length, maximumLength: length) { [weak self] data, _, isComplete, error in
+            guard let self else { return }
             if let error {
                 print("[Server] Receive error (body): \(error)")
+                self.handleDisconnect()
+                return
+            }
+            if isComplete && (data == nil || data!.count < length) {
+                print("[Server] Client disconnected mid-message")
+                self.handleDisconnect()
                 return
             }
             if let data, data.count == length {
-                self?.handleData(data, on: connection)
+                self.handleData(data, on: connection)
             }
-            self?.receiveNextMessage(on: connection)
+            self.receiveNextMessage(on: connection)
+        }
+    }
+
+    private func handleDisconnect() {
+        print("[Server] Device disconnected")
+        DispatchQueue.main.async {
+            self.connectedDevice = nil
         }
     }
 
