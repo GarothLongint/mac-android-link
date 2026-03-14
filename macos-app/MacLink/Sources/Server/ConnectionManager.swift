@@ -15,6 +15,8 @@ final class ConnectionManager: ObservableObject {
     private var listener: NWListener?
     private var activeConnection: NWConnection?
     private let queue = DispatchQueue(label: "com.maclink.server", qos: .userInitiated)
+    private var heartbeatTimer: DispatchSourceTimer?
+    private let heartbeatTimeout: TimeInterval = 60  // s bez wiadomości = rozłącz
 
     // MARK: - Server lifecycle
 
@@ -52,7 +54,6 @@ final class ConnectionManager: ObservableObject {
     // MARK: - Connection handling
 
     private func handleNewConnection(_ connection: NWConnection) {
-        // Only one device at a time for now
         activeConnection?.cancel()
         activeConnection = connection
 
@@ -60,17 +61,40 @@ final class ConnectionManager: ObservableObject {
             switch state {
             case .ready:
                 print("[Server] Client connected")
+                self?.resetHeartbeatTimer(connection: connection)
                 self?.receiveNextMessage(on: connection)
             case .failed(let error):
                 print("[Server] Connection failed: \(error)")
+                self?.stopHeartbeatTimer()
                 DispatchQueue.main.async { self?.connectedDevice = nil }
             case .cancelled:
+                self?.stopHeartbeatTimer()
                 DispatchQueue.main.async { self?.connectedDevice = nil }
             default: break
             }
         }
 
         connection.start(queue: queue)
+    }
+
+    // MARK: - Heartbeat watchdog (jeśli brak danych przez 60s → sieć znikła)
+
+    private func resetHeartbeatTimer(connection: NWConnection) {
+        stopHeartbeatTimer()
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        timer.schedule(deadline: .now() + heartbeatTimeout)
+        timer.setEventHandler { [weak self] in
+            print("[Server] ⏱ Heartbeat timeout — zakładam rozłączenie")
+            connection.cancel()
+            self?.handleDisconnect()
+        }
+        timer.resume()
+        heartbeatTimer = timer
+    }
+
+    private func stopHeartbeatTimer() {
+        heartbeatTimer?.cancel()
+        heartbeatTimer = nil
     }
 
     // MARK: - Message receiving (length-prefixed: 4 bytes big-endian + Protobuf data)
@@ -131,6 +155,7 @@ final class ConnectionManager: ObservableObject {
     }
 
     private func handleData(_ data: Data, on connection: NWConnection) {
+        resetHeartbeatTimer(connection: connection)  // aktywność = reset watchdoga
         do {
             let envelope = try Maclink_Envelope(serializedBytes: data)
             processEnvelope(envelope, on: connection)

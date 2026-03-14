@@ -57,13 +57,19 @@ fun MainScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (devices.isEmpty()) {
+            if devices.isEmpty() && connectionState != ConnectionState.CONNECTED {
                 Text(
                     "Szukam urządzeń MacLink w sieci...",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+            } else if devices.isEmpty() && connectionState == ConnectionState.CONNECTED {
+                Text(
+                    "Połączono ✓",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(devices) { device ->

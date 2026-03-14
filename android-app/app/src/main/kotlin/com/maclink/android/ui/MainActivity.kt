@@ -62,8 +62,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        val app = application as MacLinkApplication
-        app.discovery.stopDiscovery()
+        // Nie zatrzymujemy discovery — działa w tle przez Application
     }
 
     private fun isNotificationListenerEnabled(): Boolean {
