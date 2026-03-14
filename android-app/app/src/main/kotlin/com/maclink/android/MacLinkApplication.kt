@@ -34,12 +34,14 @@ class MacLinkApplication : Application() {
         discovery.startDiscovery()
 
         // Auto-connect: gdy NSD wykryje urządzenie i nie jesteśmy połączeni → łącz
+        // (tylko jeśli użytkownik NIE rozłączył się ręcznie)
         scope.launch {
             discovery.discoveredDevices.collect { devices ->
                 val device = devices.firstOrNull() ?: return@collect
                 val state = client.state.value
-                if (state == ConnectionState.DISCONNECTED || state == ConnectionState.ERROR) {
-                    println("[AutoConnect] Odkryto ${device.name} (${device.host}:${device.port}) — łączę automatycznie")
+                if (!client.manuallyDisconnected &&
+                    (state == ConnectionState.DISCONNECTED || state == ConnectionState.ERROR)) {
+                    println("[AutoConnect] Odkryto ${device.name} → łączę automatycznie")
                     client.connect(device.host, device.port)
                 }
             }

@@ -26,6 +26,9 @@ class MacLinkClient(
 
     var onEnvelopeReceived: ((Envelope) -> Unit)? = null
 
+    // true = użytkownik ręcznie rozłączył → nie auto-reconnektuj
+    var manuallyDisconnected: Boolean = false
+
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var socket: Socket? = null
     private var output: DataOutputStream? = null
@@ -40,6 +43,7 @@ class MacLinkClient(
     // MARK: - Connect / Disconnect
 
     fun connect(host: String, port: Int) {
+        manuallyDisconnected = false   // ręczne połączenie resetuje flagę
         lastHost = host
         lastPort = port
         reconnectJob?.cancel()
@@ -50,6 +54,7 @@ class MacLinkClient(
     }
 
     fun disconnect() {
+        manuallyDisconnected = true    // zapamiętaj że użytkownik rozłączył ręcznie
         lastHost = null
         reconnectJob?.cancel()
         receiveJob?.cancel()
