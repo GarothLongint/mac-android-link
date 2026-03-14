@@ -33,7 +33,7 @@ final class CallStore: ObservableObject {
                     startedAt: Date()
                 )
                 self.onCallChanged?(self.activeCall)
-                self.showCallNotification(callEvent: callEvent)
+                // Nie pokazujemy UNUserNotification — wystarczy floating window
             case .accepted, .ended, .rejected:
                 self.activeCall = nil
                 self.onCallChanged?(nil)
@@ -57,22 +57,5 @@ final class CallStore: ObservableObject {
         env.callEvent = ev
         connectionManager?.send(env)
         activeCall = nil
-    }
-
-    private func showCallNotification(callEvent: Maclink_CallEvent) {
-        let content = UNMutableNotificationContent()
-        let isIncoming = callEvent.state == .incoming
-        let callerDisplay = callEvent.callerName.isEmpty ? callEvent.callerNumber : callEvent.callerName
-        content.title = isIncoming ? "Połączenie przychodzące" : "Połączenie wychodzące"
-        content.body = callerDisplay.isEmpty ? "Nieznany numer" : callerDisplay
-        content.sound = .default
-        let request = UNNotificationRequest(
-            identifier: "call-\(callEvent.callID)",
-            content: content,
-            trigger: nil
-        )
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error { print("[CallStore] Notification error: \(error)") }
-        }
     }
 }

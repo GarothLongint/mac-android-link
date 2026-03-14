@@ -188,10 +188,11 @@ class CallDetectorService(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     fun answerCall() {
-        // Metoda 1: TelecomManager (działa dla połączeń GSM, Android 8+)
+        // Próba 1: TelecomManager (działa na czystym Androidzie, Samsung często blokuje)
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                @Suppress("DEPRECATION")
                 tm.acceptRingingCall()
                 println("[CallDetector] answerCall via TelecomManager")
                 return
@@ -200,23 +201,24 @@ class CallDetectorService(private val context: Context) {
             println("[CallDetector] TelecomManager.acceptRingingCall failed: $e")
         }
 
-        // Metoda 2: Intent ACTION_ANSWER (działa dla niektórych VoIP)
+        // Próba 2: HEADSETHOOK broadcast (symuluje przycisk słuchawki)
         try {
             val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
                 putExtra(android.content.Intent.EXTRA_KEY_EVENT,
-                    android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
-                addFlags(android.content.Intent.FLAG_RECEIVER_FOREGROUND)
+                    android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
             }
             context.sendOrderedBroadcast(intent, null)
-            println("[CallDetector] answerCall via HEADSETHOOK broadcast")
+            println("[CallDetector] answerCall via HEADSETHOOK")
         } catch (e: Exception) {
-            println("[CallDetector] HEADSETHOOK broadcast failed: $e")
+            println("[CallDetector] HEADSETHOOK failed: $e")
         }
+
+        // Próba 3: Pokaż powiadomienie z prośbą o tapnięcie (fallback dla Samsung)
+        showAnswerPromptNotification()
     }
 
     @SuppressLint("MissingPermission")
     fun rejectCall() {
-        // Metoda 1: TelecomManager.endCall
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             @Suppress("DEPRECATION")
@@ -226,8 +228,6 @@ class CallDetectorService(private val context: Context) {
         } catch (e: Exception) {
             println("[CallDetector] TelecomManager.endCall failed: $e")
         }
-
-        // Metoda 2: HEADSETHOOK (symuluje naciśnięcie przycisku słuchawki — odrzuca na większości urządzeń)
         try {
             val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
                 putExtra(android.content.Intent.EXTRA_KEY_EVENT,
@@ -236,6 +236,31 @@ class CallDetectorService(private val context: Context) {
             context.sendOrderedBroadcast(intent, null)
         } catch (e: Exception) {
             println("[CallDetector] rejectCall broadcast failed: $e")
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun showAnswerPromptNotification() {
+        try {
+            val nm = context.getSystemService(android.app.NotificationManager::class.java)
+            val channelId = "maclink_answer_prompt"
+            nm.createNotificationChannel(
+                android.app.NotificationChannel(channelId, "MacLink — odbierz połączenie",
+                    android.app.NotificationManager.IMPORTANCE_HIGH).apply {
+                    enableVibration(true)
+                    setSound(null, null)
+                }
+            )
+            val notif = android.app.Notification.Builder(context, channelId)
+                .setSmallIcon(android.R.drawable.ic_menu_call)
+                .setContentTitle("Odbierz połączenie z Maca")
+                .setContentText("Kliknij aby odebrać połączenie")
+                .setAutoCancel(true)
+                .setFullScreenIntent(null, true)
+                .build()
+            nm.notify(9001, notif)
+        } catch (e: Exception) {
+            println("[CallDetector] showAnswerPrompt failed: $e")
         }
     }
 }
