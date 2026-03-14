@@ -189,59 +189,68 @@ class CallDetectorService(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     fun answerCall() {
-        // Próba 1: TelecomManager (działa na czystym Androidzie, Samsung często blokuje)
-        var answered = false
+        println("[CallDetector] answerCall() — trying all methods")
+
+        // Metoda 1: Accessibility Service (najbardziej niezawodna na Samsung)
+        if (CallAnswerAccessibilityService.isEnabled()) {
+            if (CallAnswerAccessibilityService.answerCall()) {
+                println("[CallDetector] Answered via AccessibilityService ✓")
+                return
+            }
+        } else {
+            println("[CallDetector] AccessibilityService not enabled — trying fallbacks")
+        }
+
+        // Metoda 2: TelecomManager
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                @Suppress("DEPRECATION")
-                tm.acceptRingingCall()
-                answered = true
-                println("[CallDetector] answerCall via TelecomManager ✓")
-            }
+            @Suppress("DEPRECATION")
+            tm.acceptRingingCall()
+            println("[CallDetector] Answered via TelecomManager ✓")
+            return
         } catch (e: Exception) {
             println("[CallDetector] TelecomManager failed: $e")
         }
 
-        if (!answered) {
-            // Próba 2: HEADSETHOOK broadcast
-            try {
-                listOf(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.ACTION_UP).forEach { action ->
-                    val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
-                        putExtra(android.content.Intent.EXTRA_KEY_EVENT,
-                            android.view.KeyEvent(action, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
-                    }
-                    context.sendOrderedBroadcast(intent, null)
-                }
-                println("[CallDetector] HEADSETHOOK sent")
-            } catch (e: Exception) {
-                println("[CallDetector] HEADSETHOOK failed: $e")
-            }
-        }
-
-        // Fallback dla Samsung: pokaż pełnoekranowe okno z info
+        // Metoda 3: HEADSETHOOK broadcast
         try {
-            com.maclink.android.ui.call.AnswerCallActivity.launch(
-                context,
-                currentCallerName ?: "",
-                currentNumber ?: ""
-            )
+            listOf(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.ACTION_UP).forEach { action ->
+                val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
+                    putExtra(android.content.Intent.EXTRA_KEY_EVENT,
+                        android.view.KeyEvent(action, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
+                }
+                context.sendOrderedBroadcast(intent, null)
+            }
+            println("[CallDetector] HEADSETHOOK sent")
         } catch (e: Exception) {
-            println("[CallDetector] AnswerCallActivity launch failed: $e")
+            println("[CallDetector] HEADSETHOOK failed: $e")
         }
     }
 
     @SuppressLint("MissingPermission")
     fun rejectCall() {
+        println("[CallDetector] rejectCall() — trying all methods")
+
+        // Metoda 1: Accessibility Service
+        if (CallAnswerAccessibilityService.isEnabled()) {
+            if (CallAnswerAccessibilityService.rejectCall()) {
+                println("[CallDetector] Rejected via AccessibilityService ✓")
+                return
+            }
+        }
+
+        // Metoda 2: TelecomManager
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             @Suppress("DEPRECATION")
             tm.endCall()
-            println("[CallDetector] rejectCall via TelecomManager")
+            println("[CallDetector] Rejected via TelecomManager ✓")
             return
         } catch (e: Exception) {
-            println("[CallDetector] TelecomManager.endCall failed: $e")
+            println("[CallDetector] TelecomManager failed: $e")
         }
+
+        // Metoda 3: HEADSETHOOK
         try {
             val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
                 putExtra(android.content.Intent.EXTRA_KEY_EVENT,
@@ -249,7 +258,7 @@ class CallDetectorService(private val context: Context) {
             }
             context.sendOrderedBroadcast(intent, null)
         } catch (e: Exception) {
-            println("[CallDetector] rejectCall broadcast failed: $e")
+            println("[CallDetector] HEADSETHOOK reject failed: $e")
         }
     }
 }

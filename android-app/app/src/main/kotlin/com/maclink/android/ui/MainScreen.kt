@@ -1,5 +1,7 @@
 package com.maclink.android.ui
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -17,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.maclink.android.network.ConnectionState
 import com.maclink.android.network.MacLinkClient
 import com.maclink.android.network.NsdDiscovery
+import com.maclink.android.service.CallAnswerAccessibilityService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +50,34 @@ fun MainScreen(
         ) {
             // Status
             ConnectionStatusCard(connectionState)
+
+            // Accessibility Service prompt
+            if (!CallAnswerAccessibilityService.isEnabled()) {
+                val context = LocalContext.current
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Odbieranie połączeń", fontWeight = FontWeight.Medium,
+                                style = MaterialTheme.typography.bodyMedium)
+                            Text("Włącz usługę dostępności aby odbierać z Maca",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f))
+                        }
+                        TextButton(onClick = {
+                            context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                        }) { Text("Włącz") }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

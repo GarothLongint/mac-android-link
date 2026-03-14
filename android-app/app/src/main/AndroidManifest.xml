@@ -46,6 +46,20 @@
             android:foregroundServiceType="dataSync"
             android:exported="false" />
 
+        <!-- Accessibility Service — programowe odbieranie połączeń -->
+        <service
+            android:name=".service.CallAnswerAccessibilityService"
+            android:exported="true"
+            android:label="MacLink — odbieranie połączeń"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
         <activity
             android:name=".ui.call.AnswerCallActivity"
             android:exported="false"
