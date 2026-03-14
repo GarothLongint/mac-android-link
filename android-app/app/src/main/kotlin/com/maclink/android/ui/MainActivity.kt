@@ -24,6 +24,17 @@ class MainActivity : ComponentActivity() {
         ConnectionService.start(this)
     }
 
+    private val requestPhonePermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        println("[MainActivity] READ_PHONE_STATE granted=$granted")
+        if (granted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (application as MacLinkApplication).callDetector.init {
+                (application as MacLinkApplication).client.send(it)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -36,11 +47,19 @@ class MainActivity : ComponentActivity() {
         }
 
         requestNotificationsAndStart()
+        requestPhonePermission()
 
         setContent {
             MacLinkTheme {
                 MainScreen(client = app.client, discovery = app.discovery)
             }
+        }
+    }
+
+    private fun requestPhonePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+            != PackageManager.PERMISSION_GRANTED) {
+            requestPhonePermission.launch(Manifest.permission.READ_PHONE_STATE)
         }
     }
 

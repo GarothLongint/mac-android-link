@@ -45,8 +45,15 @@ class CallDetectorService(private val context: Context) {
     } else null
 
     private fun registerTelephonyCallback() {
-        val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        tm.registerTelephonyCallback(context.mainExecutor, telephonyCallback)
+        try {
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            tm.registerTelephonyCallback(context.mainExecutor, telephonyCallback)
+            println("[CallDetector] TelephonyCallback registered")
+        } catch (e: SecurityException) {
+            println("[CallDetector] No permission for TelephonyCallback: $e — call detection disabled")
+        } catch (e: Exception) {
+            println("[CallDetector] Failed to register TelephonyCallback: $e")
+        }
     }
 
     fun unregister() {
