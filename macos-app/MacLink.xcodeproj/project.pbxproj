@@ -1,0 +1,407 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		17DF7DB10E3B35AA772CA716 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FECEA2ABAE2C6AAE7F7F5084 /* MenuBarView.swift */; };
+		433D7C0EA03266D8836698B7 /* MacLinkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05725C34D8251CC33FB2687C /* MacLinkApp.swift */; };
+		B21BA18B9A6ADF7B372CE63C /* BonjourBroadcaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */; };
+		C9934DEFC6750F87B1BC2BEA /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2079080CB294A91D469F888C /* ConnectionManager.swift */; };
+		DF4EF7E2A2D1A4D958E6136A /* NotificationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B154332E1BB68F0714207C /* NotificationStore.swift */; };
+		E1D6E1AC4E3C67CFFB1D738C /* PairingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DADE7B2324B7872E851BDF55 /* PairingManager.swift */; };
+		F2F2B82FB0E78EC47C851BAD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B5EEF9E6B7C9BE9BE84928 /* AppDelegate.swift */; };
+		F9CD5285D572DED50ADF7EAA /* maclink.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACF6FFF2F8B8CB797F51EBC /* maclink.pb.swift */; };
+		FBEFE41C81B75E293C4CABAC /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 33D53805B5BF81B722000CCB /* SwiftProtobuf */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		05725C34D8251CC33FB2687C /* MacLinkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacLinkApp.swift; sourceTree = "<group>"; };
+		2079080CB294A91D469F888C /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourBroadcaster.swift; sourceTree = "<group>"; };
+		76B154332E1BB68F0714207C /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
+		96B5EEF9E6B7C9BE9BE84928 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A0A7485C4278E11560E673F0 /* MacLink.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacLink.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0395BEF3B139E68F511F071 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CACF6FFF2F8B8CB797F51EBC /* maclink.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = maclink.pb.swift; sourceTree = "<group>"; };
+		DADE7B2324B7872E851BDF55 /* PairingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingManager.swift; sourceTree = "<group>"; };
+		FECEA2ABAE2C6AAE7F7F5084 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D0087D603EC7C559DBACBCD3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBEFE41C81B75E293C4CABAC /* SwiftProtobuf in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		196E43F8B136A5E7AC42A865 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				FECEA2ABAE2C6AAE7F7F5084 /* MenuBarView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		392A9FB137E216BB6C66F6EC /* App */ = {
+			isa = PBXGroup;
+			children = (
+				96B5EEF9E6B7C9BE9BE84928 /* AppDelegate.swift */,
+				C0395BEF3B139E68F511F071 /* Info.plist */,
+				05725C34D8251CC33FB2687C /* MacLinkApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		5762249D7E47599723F7D5AB /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				392A9FB137E216BB6C66F6EC /* App */,
+				7AF1FE2C485FEB170F89F466 /* Discovery */,
+				864F4357D14EF7B0C59B5997 /* Model */,
+				B717E95CAA901D803219AE7B /* Notifications */,
+				AA97FECC870972FBA749CF3D /* Server */,
+				196E43F8B136A5E7AC42A865 /* UI */,
+			);
+			name = Sources;
+			path = MacLink/Sources;
+			sourceTree = "<group>";
+		};
+		7AF1FE2C485FEB170F89F466 /* Discovery */ = {
+			isa = PBXGroup;
+			children = (
+				4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */,
+			);
+			path = Discovery;
+			sourceTree = "<group>";
+		};
+		864F4357D14EF7B0C59B5997 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				DAE43527158E0B085AF92D8C /* Proto */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		AA97FECC870972FBA749CF3D /* Server */ = {
+			isa = PBXGroup;
+			children = (
+				2079080CB294A91D469F888C /* ConnectionManager.swift */,
+				DADE7B2324B7872E851BDF55 /* PairingManager.swift */,
+			);
+			path = Server;
+			sourceTree = "<group>";
+		};
+		B2A23EF113C80A4A823E6844 = {
+			isa = PBXGroup;
+			children = (
+				5762249D7E47599723F7D5AB /* Sources */,
+				B84D35CBB112F938ADD70BB7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B717E95CAA901D803219AE7B /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				76B154332E1BB68F0714207C /* NotificationStore.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		B84D35CBB112F938ADD70BB7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A0A7485C4278E11560E673F0 /* MacLink.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DAE43527158E0B085AF92D8C /* Proto */ = {
+			isa = PBXGroup;
+			children = (
+				CACF6FFF2F8B8CB797F51EBC /* maclink.pb.swift */,
+			);
+			path = Proto;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		243BD4E18D553E02048F16A3 /* MacLink */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 069066D4EC9273E6F7C874D5 /* Build configuration list for PBXNativeTarget "MacLink" */;
+			buildPhases = (
+				2C087F13C5E6CF0214DBA432 /* Sources */,
+				D0087D603EC7C559DBACBCD3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacLink;
+			packageProductDependencies = (
+				33D53805B5BF81B722000CCB /* SwiftProtobuf */,
+			);
+			productName = MacLink;
+			productReference = A0A7485C4278E11560E673F0 /* MacLink.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5CABA2B7190CC67342C68349 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 8D643A34EF7C3E01199B7A03 /* Build configuration list for PBXProject "MacLink" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = B2A23EF113C80A4A823E6844;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2CBBBA5ED1154A3551BC97CA /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B84D35CBB112F938ADD70BB7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				243BD4E18D553E02048F16A3 /* MacLink */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2C087F13C5E6CF0214DBA432 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2F2B82FB0E78EC47C851BAD /* AppDelegate.swift in Sources */,
+				B21BA18B9A6ADF7B372CE63C /* BonjourBroadcaster.swift in Sources */,
+				C9934DEFC6750F87B1BC2BEA /* ConnectionManager.swift in Sources */,
+				433D7C0EA03266D8836698B7 /* MacLinkApp.swift in Sources */,
+				17DF7DB10E3B35AA772CA716 /* MenuBarView.swift in Sources */,
+				DF4EF7E2A2D1A4D958E6136A /* NotificationStore.swift in Sources */,
+				E1D6E1AC4E3C67CFFB1D738C /* PairingManager.swift in Sources */,
+				F9CD5285D572DED50ADF7EAA /* maclink.pb.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		12EB83FE9E377F12BF7613D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6EEB377E3552D9093156A993 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = MacLink/Sources/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.maclink.app;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		6F53E3E2FD00520590C6277C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = MacLink/Sources/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.maclink.app;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		BDFCAA32E2DE88F301FB8DD8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		069066D4EC9273E6F7C874D5 /* Build configuration list for PBXNativeTarget "MacLink" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EEB377E3552D9093156A993 /* Debug */,
+				6F53E3E2FD00520590C6277C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8D643A34EF7C3E01199B7A03 /* Build configuration list for PBXProject "MacLink" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDFCAA32E2DE88F301FB8DD8 /* Debug */,
+				12EB83FE9E377F12BF7613D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2CBBBA5ED1154A3551BC97CA /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.25.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		33D53805B5BF81B722000CCB /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2CBBBA5ED1154A3551BC97CA /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 5CABA2B7190CC67342C68349 /* Project object */;
+}
