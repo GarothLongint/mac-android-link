@@ -56,10 +56,15 @@ class CallAnswerAccessibilityService : AccessibilityService() {
             "com.samsung.android.incallui:id/floating_end_call_button",
             "com.samsung.android.incallui:id/btn_endcall",
             "com.samsung.android.incallui:id/btn_end_call",
+            "com.samsung.android.incallui:id/endButton",
+            "com.samsung.android.incallui:id/hangup_button",
+            "com.samsung.android.incallui:id/btnEndCall",
             "com.samsung.android.dialer:id/end_call_button",
+            "com.samsung.android.dialer:id/hangup_button",
             "com.android.incallui:id/end_call_button",
             "com.android.incallui:id/floating_end_call_button",
-            "com.google.android.dialer:id/end_call_button"
+            "com.google.android.dialer:id/end_call_button",
+            "com.google.android.dialer:id/incall_end_call"
         )
 
         // Słowa kluczowe (contentDescription / text) w różnych językach
@@ -197,7 +202,29 @@ class CallAnswerAccessibilityService : AccessibilityService() {
         }
 
         Log.e(TAG, "Could not find answer/reject button in any window!")
+        // Zaloguj wszystkie widoczne okna i pakiety dla debugowania
+        windows?.forEach { w ->
+            val root = w.root ?: return@forEach
+            Log.d(TAG, "  Window: pkg=${root.packageName} title=${w.title} childCount=${root.childCount}")
+            logAllClickable(root, depth = 0)
+            root.recycle()
+        }
         return false
+    }
+
+    private fun logAllClickable(node: AccessibilityNodeInfo, depth: Int) {
+        if (depth > 4) return
+        val resId = node.viewIdResourceName ?: ""
+        val desc = node.contentDescription ?: ""
+        val text = node.text ?: ""
+        if (node.isClickable && resId.isNotEmpty()) {
+            Log.d(TAG, "    CLICKABLE[$depth] resId=$resId desc=$desc text=$text")
+        }
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i) ?: continue
+            logAllClickable(child, depth + 1)
+            child.recycle()
+        }
     }
 
     private fun findNodeByKeywords(node: AccessibilityNodeInfo, keywords: List<String>): AccessibilityNodeInfo? {

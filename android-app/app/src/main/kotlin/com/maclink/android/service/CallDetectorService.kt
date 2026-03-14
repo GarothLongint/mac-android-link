@@ -280,38 +280,48 @@ class CallDetectorService(private val context: Context) {
     fun rejectCall() {
         println("[CallDetector] rejectCall() — trying all methods")
 
-        // Metoda 1: Accessibility Service — endCall (aktywna rozmowa) lub rejectCall (przychodzące)
-        if (CallAnswerAccessibilityService.isEnabled()) {
-            if (CallAnswerAccessibilityService.endCall()) {
-                println("[CallDetector] Ended via AccessibilityService (endCall) ✓")
-                return
-            }
-            if (CallAnswerAccessibilityService.rejectCall()) {
-                println("[CallDetector] Rejected via AccessibilityService (rejectCall) ✓")
-                return
-            }
-        }
-
-        // Metoda 2: TelecomManager.endCall() — wymaga CALL_PHONE
+        // Metoda 1: KEYCODE_ENDCALL — najskuteczniejsza dla GSM na Androidzie
         try {
-            val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            @Suppress("DEPRECATION")
-            tm.endCall()
-            println("[CallDetector] Ended via TelecomManager ✓")
-            return
-        } catch (e: Exception) {
-            println("[CallDetector] TelecomManager failed: $e")
-        }
-
-        // Metoda 3: HEADSETHOOK
-        try {
-            val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
+            val downIntent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
                 putExtra(android.content.Intent.EXTRA_KEY_EVENT,
-                    android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
+                    android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENDCALL))
             }
-            context.sendOrderedBroadcast(intent, null)
+            val upIntent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
+                putExtra(android.content.Intent.EXTRA_KEY_EVENT,
+                    android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENDCALL))
+            }
+            context.sendOrderedBroadcast(downIntent, null)
+            context.sendOrderedBroadcast(upIntent, null)
+            println("[CallDetector] ENDCALL keyevent sent ✓")
         } catch (e: Exception) {
-            println("[CallDetector] HEADSETHOOK reject failed: $e")
+            println("[CallDetector] ENDCALL keyevent failed: $e")
+        }
+
+        // Metoda 2: AccessibilityService — kliknij przycisk na ekranie (po przebudzeniu)
+        // Uruchamiamy równolegle z ENDCALL jako backup (jeden z nich zadziała)
+        if (CallAnswerAccessibilityService.isEnabled()) {
+            wakeScreen()
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                if (CallAnswerAccessibilityService.endCall()) {
+                    println("[CallDetector] Ended via AccessibilityService (endCall) ✓")
+                } else if (CallAnswerAccessibilityService.rejectCall()) {
+                    println("[CallDetector] Rejected via AccessibilityService (rejectCall) ✓")
+                }
+            }, 400)
+        }
+    }
+
+    private fun wakeScreen() {
+        try {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+            @Suppress("DEPRECATION")
+            val wl = pm.newWakeLock(
+                android.os.PowerManager.SCREEN_BRIGHT_WAKE_LOCK or android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                "MacLink:EndCall"
+            )
+            wl.acquire(3000L)
+        } catch (e: Exception) {
+            println("[CallDetector] wakeScreen failed: $e")
         }
     }
 }
