@@ -188,21 +188,54 @@ class CallDetectorService(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     fun answerCall() {
+        // Metoda 1: TelecomManager (działa dla połączeń GSM, Android 8+)
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            tm.acceptRingingCall()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                tm.acceptRingingCall()
+                println("[CallDetector] answerCall via TelecomManager")
+                return
+            }
         } catch (e: Exception) {
-            println("[CallDetector] answerCall failed: $e")
+            println("[CallDetector] TelecomManager.acceptRingingCall failed: $e")
+        }
+
+        // Metoda 2: Intent ACTION_ANSWER (działa dla niektórych VoIP)
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
+                putExtra(android.content.Intent.EXTRA_KEY_EVENT,
+                    android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
+                addFlags(android.content.Intent.FLAG_RECEIVER_FOREGROUND)
+            }
+            context.sendOrderedBroadcast(intent, null)
+            println("[CallDetector] answerCall via HEADSETHOOK broadcast")
+        } catch (e: Exception) {
+            println("[CallDetector] HEADSETHOOK broadcast failed: $e")
         }
     }
 
     @SuppressLint("MissingPermission")
     fun rejectCall() {
+        // Metoda 1: TelecomManager.endCall
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+            @Suppress("DEPRECATION")
             tm.endCall()
+            println("[CallDetector] rejectCall via TelecomManager")
+            return
         } catch (e: Exception) {
-            println("[CallDetector] rejectCall failed: $e")
+            println("[CallDetector] TelecomManager.endCall failed: $e")
+        }
+
+        // Metoda 2: HEADSETHOOK (symuluje naciśnięcie przycisku słuchawki — odrzuca na większości urządzeń)
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
+                putExtra(android.content.Intent.EXTRA_KEY_EVENT,
+                    android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
+            }
+            context.sendOrderedBroadcast(intent, null)
+        } catch (e: Exception) {
+            println("[CallDetector] rejectCall broadcast failed: $e")
         }
     }
 }

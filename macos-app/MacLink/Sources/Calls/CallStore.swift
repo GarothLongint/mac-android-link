@@ -6,6 +6,7 @@ import UserNotifications
 final class CallStore: ObservableObject {
     @Published var activeCall: ActiveCall? = nil
     weak var connectionManager: ConnectionManager?
+    var onCallChanged: ((ActiveCall?) -> Void)?
 
     struct ActiveCall {
         let callId: String
@@ -31,12 +32,11 @@ final class CallStore: ObservableObject {
                     state: callEvent.state,
                     startedAt: Date()
                 )
+                self.onCallChanged?(self.activeCall)
                 self.showCallNotification(callEvent: callEvent)
-                if callEvent.state == .incoming {
-                    NSSound(named: .init("Glass"))?.play()
-                }
             case .accepted, .ended, .rejected:
                 self.activeCall = nil
+                self.onCallChanged?(nil)
             default:
                 break
             }

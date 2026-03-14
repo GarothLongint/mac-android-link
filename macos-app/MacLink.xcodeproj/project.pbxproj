@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		17DF7DB10E3B35AA772CA716 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FECEA2ABAE2C6AAE7F7F5084 /* MenuBarView.swift */; };
 		433D7C0EA03266D8836698B7 /* MacLinkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05725C34D8251CC33FB2687C /* MacLinkApp.swift */; };
+		7C7C49321D1BD81CCEE73285 /* CallWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5A6CE1F3698A0A77169A5E /* CallWindowView.swift */; };
 		B21BA18B9A6ADF7B372CE63C /* BonjourBroadcaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */; };
 		B4DC3BF9812D0789A2FAC1A3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7E2E333059CB1B9773466C35 /* Assets.xcassets */; };
 		C9934DEFC6750F87B1BC2BEA /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2079080CB294A91D469F888C /* ConnectionManager.swift */; };
@@ -24,6 +25,7 @@
 		05725C34D8251CC33FB2687C /* MacLinkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacLinkApp.swift; sourceTree = "<group>"; };
 		1D44698D3E27FC1CEA13E554 /* CallStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallStore.swift; sourceTree = "<group>"; };
 		2079080CB294A91D469F888C /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		3A5A6CE1F3698A0A77169A5E /* CallWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallWindowView.swift; sourceTree = "<group>"; };
 		4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourBroadcaster.swift; sourceTree = "<group>"; };
 		76B154332E1BB68F0714207C /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
 		7E2E333059CB1B9773466C35 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				1D44698D3E27FC1CEA13E554 /* CallStore.swift */,
+				3A5A6CE1F3698A0A77169A5E /* CallWindowView.swift */,
 			);
 			path = Calls;
 			sourceTree = "<group>";
@@ -229,6 +232,7 @@
 				F2F2B82FB0E78EC47C851BAD /* AppDelegate.swift in Sources */,
 				B21BA18B9A6ADF7B372CE63C /* BonjourBroadcaster.swift in Sources */,
 				D8D94075BDFD79E8F5FFD51D /* CallStore.swift in Sources */,
+				7C7C49321D1BD81CCEE73285 /* CallWindowView.swift in Sources */,
 				C9934DEFC6750F87B1BC2BEA /* ConnectionManager.swift in Sources */,
 				433D7C0EA03266D8836698B7 /* MacLinkApp.swift in Sources */,
 				17DF7DB10E3B35AA772CA716 /* MenuBarView.swift in Sources */,
