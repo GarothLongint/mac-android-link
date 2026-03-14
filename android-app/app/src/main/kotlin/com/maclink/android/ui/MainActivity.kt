@@ -35,7 +35,6 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
 
-        app.discovery.startDiscovery()
         requestNotificationsAndStart()
 
         setContent {
