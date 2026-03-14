@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 class ConnectionService : Service() {
 
     companion object {
-        const val CHANNEL_ID = "maclink_connection"
+        const val CHANNEL_ID = "maclink_connection_v2"
         const val NOTIF_ID = 1
 
         fun start(context: Context) {
@@ -70,10 +70,12 @@ class ConnectionService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Stan połączenia MacLink",
-            NotificationManager.IMPORTANCE_LOW   // LOW = bez dźwięku, widoczne w pasku
+            NotificationManager.IMPORTANCE_DEFAULT  // DEFAULT = widoczna ikonka w pasku
         ).apply {
             description = "Pokazuje czy MacLink jest połączony z komputerem Mac"
             setShowBadge(false)
+            setSound(null, null)         // bez dźwięku
+            enableVibration(false)       // bez wibracji
         }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
