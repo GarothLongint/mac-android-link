@@ -101,13 +101,16 @@ class MacLinkApplication : Application() {
                 when (callEvent.state) {
                     CallEvent.State.ACCEPTED -> {
                         // Mac user clicked "Odbierz" → answer phone only.
-                        // Audio streaming is started manually by user via the call window button.
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
                             ::callDetector.isInitialized) {
                             wakeScreen()
                             scope.launch(Dispatchers.Main) {
                                 delay(600) // wait for dialer window to render
                                 callDetector.answerCall()
+                                // WhatsApp VoIP często nie triggeruje CALL_STATE_OFFHOOK,
+                                // więc watchdog może nie wystartować. Uruchom go ręcznie.
+                                delay(1000)
+                                callDetector.startWatchdogIfNeeded()
                             }
                         }
                     }

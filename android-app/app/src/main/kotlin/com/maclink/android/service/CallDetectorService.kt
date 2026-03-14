@@ -87,6 +87,8 @@ class CallDetectorService(private val context: Context) {
                     callerNumber = callerNumber,
                     photoBytes = photoBytes
                 )
+                // Startuj watchdog wcześnie — VoIP (WhatsApp) może nie triggerować OFFHOOK
+                startCallWatchdog(currentCallId!!)
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 val id = currentCallId
@@ -132,7 +134,13 @@ class CallDetectorService(private val context: Context) {
         }
     }
 
-    /** Watchdog: co 3s sprawdza czy rozmowa nadal aktywna. Jeśli nie → wysyła ENDED do Maca. */
+    /** Uruchom watchdog jeśli jeszcze nie działa — np. gdy VoIP nie triggeruje OFFHOOK. */
+    fun startWatchdogIfNeeded() {
+        val id = currentCallId ?: return
+        if (watchdogJob?.isActive == true) return
+        println("[CallDetector] Starting watchdog (triggered externally, callId=$id)")
+        startCallWatchdog(id)
+    }
     @SuppressLint("MissingPermission")
     private fun startCallWatchdog(callId: String) {
         watchdogJob?.cancel()
