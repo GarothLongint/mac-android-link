@@ -46,6 +46,13 @@
             android:foregroundServiceType="dataSync"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.call.AnswerCallActivity"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.MacLink" />
+
         <!-- Notification Listener Service -->
         <service
             android:name=".service.PhoneNotificationListenerService"

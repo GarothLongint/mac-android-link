@@ -22,6 +22,7 @@ class CallDetectorService(private val context: Context) {
 
     private var currentCallId: String? = null
     private var currentNumber: String? = null
+    private var currentCallerName: String? = null
     private var sendEnvelope: ((Envelope) -> Unit)? = null
 
     fun init(send: (Envelope) -> Unit) {
@@ -64,11 +65,11 @@ class CallDetectorService(private val context: Context) {
     private fun handleCallState(state: Int, number: String?) {
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
-                // New incoming call
                 currentCallId = UUID.randomUUID().toString()
                 currentNumber = number
                 val callerNumber = number ?: ""
                 val (callerName, photoBytes) = lookupContact(callerNumber)
+                currentCallerName = callerName
                 sendCallEvent(
                     callId = currentCallId!!,
                     state = CallEvent.State.INCOMING,
@@ -189,32 +190,45 @@ class CallDetectorService(private val context: Context) {
     @SuppressLint("MissingPermission")
     fun answerCall() {
         // Próba 1: TelecomManager (działa na czystym Androidzie, Samsung często blokuje)
+        var answered = false
         try {
             val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 @Suppress("DEPRECATION")
                 tm.acceptRingingCall()
-                println("[CallDetector] answerCall via TelecomManager")
-                return
+                answered = true
+                println("[CallDetector] answerCall via TelecomManager ✓")
             }
         } catch (e: Exception) {
-            println("[CallDetector] TelecomManager.acceptRingingCall failed: $e")
+            println("[CallDetector] TelecomManager failed: $e")
         }
 
-        // Próba 2: HEADSETHOOK broadcast (symuluje przycisk słuchawki)
+        if (!answered) {
+            // Próba 2: HEADSETHOOK broadcast
+            try {
+                listOf(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.ACTION_UP).forEach { action ->
+                    val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
+                        putExtra(android.content.Intent.EXTRA_KEY_EVENT,
+                            android.view.KeyEvent(action, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
+                    }
+                    context.sendOrderedBroadcast(intent, null)
+                }
+                println("[CallDetector] HEADSETHOOK sent")
+            } catch (e: Exception) {
+                println("[CallDetector] HEADSETHOOK failed: $e")
+            }
+        }
+
+        // Fallback dla Samsung: pokaż pełnoekranowe okno z info
         try {
-            val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_BUTTON).apply {
-                putExtra(android.content.Intent.EXTRA_KEY_EVENT,
-                    android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_HEADSETHOOK))
-            }
-            context.sendOrderedBroadcast(intent, null)
-            println("[CallDetector] answerCall via HEADSETHOOK")
+            com.maclink.android.ui.call.AnswerCallActivity.launch(
+                context,
+                currentCallerName ?: "",
+                currentNumber ?: ""
+            )
         } catch (e: Exception) {
-            println("[CallDetector] HEADSETHOOK failed: $e")
+            println("[CallDetector] AnswerCallActivity launch failed: $e")
         }
-
-        // Próba 3: Pokaż powiadomienie z prośbą o tapnięcie (fallback dla Samsung)
-        showAnswerPromptNotification()
     }
 
     @SuppressLint("MissingPermission")
@@ -236,31 +250,6 @@ class CallDetectorService(private val context: Context) {
             context.sendOrderedBroadcast(intent, null)
         } catch (e: Exception) {
             println("[CallDetector] rejectCall broadcast failed: $e")
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun showAnswerPromptNotification() {
-        try {
-            val nm = context.getSystemService(android.app.NotificationManager::class.java)
-            val channelId = "maclink_answer_prompt"
-            nm.createNotificationChannel(
-                android.app.NotificationChannel(channelId, "MacLink — odbierz połączenie",
-                    android.app.NotificationManager.IMPORTANCE_HIGH).apply {
-                    enableVibration(true)
-                    setSound(null, null)
-                }
-            )
-            val notif = android.app.Notification.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_menu_call)
-                .setContentTitle("Odbierz połączenie z Maca")
-                .setContentText("Kliknij aby odebrać połączenie")
-                .setAutoCancel(true)
-                .setFullScreenIntent(null, true)
-                .build()
-            nm.notify(9001, notif)
-        } catch (e: Exception) {
-            println("[CallDetector] showAnswerPrompt failed: $e")
         }
     }
 }
