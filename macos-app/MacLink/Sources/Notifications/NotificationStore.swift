@@ -57,6 +57,21 @@ final class NotificationStore: ObservableObject {
         content.body = item.body
         content.sound = .default
 
+        // Dodaj ikonę apki jako miniaturę w bannerze
+        if let iconData = item.iconData {
+            let tmpURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("maclink_icon_\(item.packageName).png")
+            try? iconData.write(to: tmpURL)
+            if let attachment = try? UNNotificationAttachment(
+                identifier: item.packageName,
+                url: tmpURL,
+                options: [UNNotificationAttachmentOptionsThumbnailClippingRectKey:
+                            CGRect(x: 0, y: 0, width: 1, height: 1) as AnyObject]
+            ) {
+                content.attachments = [attachment]
+            }
+        }
+
         let request = UNNotificationRequest(
             identifier: "maclink.\(item.key)",
             content: content,
