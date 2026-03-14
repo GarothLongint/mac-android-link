@@ -27,7 +27,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
 
 /// ─── Envelope ────────────────────────────────────────────────────────────────
 /// Every message sent over the WebSocket is wrapped in an Envelope.
-public struct MLEnvelope: Sendable {
+public struct Maclink_Envelope: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -38,76 +38,76 @@ public struct MLEnvelope: Sendable {
   /// Unix ms
   public var timestamp: Int64 = 0
 
-  public var payload: MLEnvelope.OneOf_Payload? = nil
+  public var payload: Maclink_Envelope.OneOf_Payload? = nil
 
-  public var handshake: MLHandshake {
+  public var handshake: Maclink_Handshake {
     get {
       if case .handshake(let v)? = payload {return v}
-      return MLHandshake()
+      return Maclink_Handshake()
     }
     set {payload = .handshake(newValue)}
   }
 
-  public var handshakeAck: MLHandshakeAck {
+  public var handshakeAck: Maclink_HandshakeAck {
     get {
       if case .handshakeAck(let v)? = payload {return v}
-      return MLHandshakeAck()
+      return Maclink_HandshakeAck()
     }
     set {payload = .handshakeAck(newValue)}
   }
 
-  public var notification: MLNotification {
+  public var notification: Maclink_Notification {
     get {
       if case .notification(let v)? = payload {return v}
-      return MLNotification()
+      return Maclink_Notification()
     }
     set {payload = .notification(newValue)}
   }
 
-  public var notificationAction: MLNotificationAction {
+  public var notificationAction: Maclink_NotificationAction {
     get {
       if case .notificationAction(let v)? = payload {return v}
-      return MLNotificationAction()
+      return Maclink_NotificationAction()
     }
     set {payload = .notificationAction(newValue)}
   }
 
-  public var callEvent: MLCallEvent {
+  public var callEvent: Maclink_CallEvent {
     get {
       if case .callEvent(let v)? = payload {return v}
-      return MLCallEvent()
+      return Maclink_CallEvent()
     }
     set {payload = .callEvent(newValue)}
   }
 
-  public var audioOffer: MLAudioOffer {
+  public var audioOffer: Maclink_AudioOffer {
     get {
       if case .audioOffer(let v)? = payload {return v}
-      return MLAudioOffer()
+      return Maclink_AudioOffer()
     }
     set {payload = .audioOffer(newValue)}
   }
 
-  public var audioAnswer: MLAudioAnswer {
+  public var audioAnswer: Maclink_AudioAnswer {
     get {
       if case .audioAnswer(let v)? = payload {return v}
-      return MLAudioAnswer()
+      return Maclink_AudioAnswer()
     }
     set {payload = .audioAnswer(newValue)}
   }
 
-  public var iceCandidate: MLIceCandidate {
+  public var iceCandidate: Maclink_IceCandidate {
     get {
       if case .iceCandidate(let v)? = payload {return v}
-      return MLIceCandidate()
+      return Maclink_IceCandidate()
     }
     set {payload = .iceCandidate(newValue)}
   }
 
-  public var heartbeat: MLHeartbeat {
+  public var heartbeat: Maclink_Heartbeat {
     get {
       if case .heartbeat(let v)? = payload {return v}
-      return MLHeartbeat()
+      return Maclink_Heartbeat()
     }
     set {payload = .heartbeat(newValue)}
   }
@@ -115,15 +115,15 @@ public struct MLEnvelope: Sendable {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable, Sendable {
-    case handshake(MLHandshake)
-    case handshakeAck(MLHandshakeAck)
-    case notification(MLNotification)
-    case notificationAction(MLNotificationAction)
-    case callEvent(MLCallEvent)
-    case audioOffer(MLAudioOffer)
-    case audioAnswer(MLAudioAnswer)
-    case iceCandidate(MLIceCandidate)
-    case heartbeat(MLHeartbeat)
+    case handshake(Maclink_Handshake)
+    case handshakeAck(Maclink_HandshakeAck)
+    case notification(Maclink_Notification)
+    case notificationAction(Maclink_NotificationAction)
+    case callEvent(Maclink_CallEvent)
+    case audioOffer(Maclink_AudioOffer)
+    case audioAnswer(Maclink_AudioAnswer)
+    case iceCandidate(Maclink_IceCandidate)
+    case heartbeat(Maclink_Heartbeat)
 
   }
 
@@ -131,7 +131,7 @@ public struct MLEnvelope: Sendable {
 }
 
 /// ─── Handshake ────────────────────────────────────────────────────────────────
-public struct MLHandshake: Sendable {
+public struct Maclink_Handshake: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -149,7 +149,7 @@ public struct MLHandshake: Sendable {
   public init() {}
 }
 
-public struct MLHandshakeAck: Sendable {
+public struct Maclink_HandshakeAck: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -169,7 +169,7 @@ public struct MLHandshakeAck: Sendable {
 }
 
 /// ─── Notifications ────────────────────────────────────────────────────────────
-public struct MLNotification: Sendable {
+public struct Maclink_Notification: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -191,7 +191,7 @@ public struct MLNotification: Sendable {
 
   public var postedAt: Int64 = 0
 
-  public var actions: [MLNotificationAction] = []
+  public var actions: [Maclink_NotificationAction] = []
 
   public var isOngoing: Bool = false
 
@@ -202,7 +202,7 @@ public struct MLNotification: Sendable {
   public init() {}
 }
 
-public struct MLNotificationAction: Sendable {
+public struct Maclink_NotificationAction: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -222,14 +222,14 @@ public struct MLNotificationAction: Sendable {
 }
 
 /// ─── Calls ────────────────────────────────────────────────────────────────────
-public struct MLCallEvent: Sendable {
+public struct Maclink_CallEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var callID: String = String()
 
-  public var state: MLCallEvent.State = .incoming
+  public var state: Maclink_CallEvent.State = .incoming
 
   public var callerName: String = String()
 
@@ -275,7 +275,7 @@ public struct MLCallEvent: Sendable {
     }
 
     // The compiler won't synthesize support with the UNRECOGNIZED case.
-    public static let allCases: [MLCallEvent.State] = [
+    public static let allCases: [Maclink_CallEvent.State] = [
       .incoming,
       .accepted,
       .rejected,
@@ -289,7 +289,7 @@ public struct MLCallEvent: Sendable {
 }
 
 /// ─── WebRTC signaling ─────────────────────────────────────────────────────────
-public struct MLAudioOffer: Sendable {
+public struct Maclink_AudioOffer: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -303,7 +303,7 @@ public struct MLAudioOffer: Sendable {
   public init() {}
 }
 
-public struct MLAudioAnswer: Sendable {
+public struct Maclink_AudioAnswer: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -317,7 +317,7 @@ public struct MLAudioAnswer: Sendable {
   public init() {}
 }
 
-public struct MLIceCandidate: Sendable {
+public struct Maclink_IceCandidate: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -336,7 +336,7 @@ public struct MLIceCandidate: Sendable {
 }
 
 /// ─── Heartbeat ────────────────────────────────────────────────────────────────
-public struct MLHeartbeat: Sendable {
+public struct Maclink_Heartbeat: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -352,7 +352,7 @@ public struct MLHeartbeat: Sendable {
 
 fileprivate let _protobuf_package = "maclink"
 
-extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_Envelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Envelope"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}timestamp\0\u{2}\u{8}handshake\0\u{3}handshake_ack\0\u{2}\u{9}notification\0\u{3}notification_action\0\u{4}\u{9}call_event\0\u{4}\u{a}audio_offer\0\u{3}audio_answer\0\u{3}ice_candidate\0\u{2}\u{8}heartbeat\0")
 
@@ -365,7 +365,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 2: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
       case 10: try {
-        var v: MLHandshake?
+        var v: Maclink_Handshake?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -378,7 +378,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 11: try {
-        var v: MLHandshakeAck?
+        var v: Maclink_HandshakeAck?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -391,7 +391,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 20: try {
-        var v: MLNotification?
+        var v: Maclink_Notification?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -404,7 +404,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 21: try {
-        var v: MLNotificationAction?
+        var v: Maclink_NotificationAction?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -417,7 +417,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 30: try {
-        var v: MLCallEvent?
+        var v: Maclink_CallEvent?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -430,7 +430,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 40: try {
-        var v: MLAudioOffer?
+        var v: Maclink_AudioOffer?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -443,7 +443,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 41: try {
-        var v: MLAudioAnswer?
+        var v: Maclink_AudioAnswer?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -456,7 +456,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 42: try {
-        var v: MLIceCandidate?
+        var v: Maclink_IceCandidate?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -469,7 +469,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         }
       }()
       case 50: try {
-        var v: MLHeartbeat?
+        var v: Maclink_Heartbeat?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
@@ -539,7 +539,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLEnvelope, rhs: MLEnvelope) -> Bool {
+  public static func ==(lhs: Maclink_Envelope, rhs: Maclink_Envelope) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.timestamp != rhs.timestamp {return false}
     if lhs.payload != rhs.payload {return false}
@@ -548,7 +548,7 @@ extension MLEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
   }
 }
 
-extension MLHandshake: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_Handshake: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Handshake"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}device_name\0\u{3}device_id\0\u{1}version\0")
 
@@ -579,7 +579,7 @@ extension MLHandshake: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLHandshake, rhs: MLHandshake) -> Bool {
+  public static func ==(lhs: Maclink_Handshake, rhs: Maclink_Handshake) -> Bool {
     if lhs.deviceName != rhs.deviceName {return false}
     if lhs.deviceID != rhs.deviceID {return false}
     if lhs.version != rhs.version {return false}
@@ -588,7 +588,7 @@ extension MLHandshake: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
-extension MLHandshakeAck: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_HandshakeAck: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".HandshakeAck"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}accepted\0\u{3}mac_name\0\u{3}mac_id\0\u{3}reject_reason\0")
 
@@ -623,7 +623,7 @@ extension MLHandshakeAck: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLHandshakeAck, rhs: MLHandshakeAck) -> Bool {
+  public static func ==(lhs: Maclink_HandshakeAck, rhs: Maclink_HandshakeAck) -> Bool {
     if lhs.accepted != rhs.accepted {return false}
     if lhs.macName != rhs.macName {return false}
     if lhs.macID != rhs.macID {return false}
@@ -633,7 +633,7 @@ extension MLHandshakeAck: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   }
 }
 
-extension MLNotification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_Notification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Notification"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}notification_key\0\u{3}package_name\0\u{3}app_name\0\u{1}title\0\u{1}text\0\u{3}sub_text\0\u{3}icon_png\0\u{3}posted_at\0\u{1}actions\0\u{3}is_ongoing\0\u{3}group_key\0")
 
@@ -696,7 +696,7 @@ extension MLNotification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLNotification, rhs: MLNotification) -> Bool {
+  public static func ==(lhs: Maclink_Notification, rhs: Maclink_Notification) -> Bool {
     if lhs.notificationKey != rhs.notificationKey {return false}
     if lhs.packageName != rhs.packageName {return false}
     if lhs.appName != rhs.appName {return false}
@@ -713,7 +713,7 @@ extension MLNotification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   }
 }
 
-extension MLNotificationAction: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_NotificationAction: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".NotificationAction"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}notification_key\0\u{3}action_key\0\u{1}label\0\u{3}reply_text\0")
 
@@ -748,7 +748,7 @@ extension MLNotificationAction: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLNotificationAction, rhs: MLNotificationAction) -> Bool {
+  public static func ==(lhs: Maclink_NotificationAction, rhs: Maclink_NotificationAction) -> Bool {
     if lhs.notificationKey != rhs.notificationKey {return false}
     if lhs.actionKey != rhs.actionKey {return false}
     if lhs.label != rhs.label {return false}
@@ -758,7 +758,7 @@ extension MLNotificationAction: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   }
 }
 
-extension MLCallEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_CallEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CallEvent"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}call_id\0\u{1}state\0\u{3}caller_name\0\u{3}caller_number\0\u{3}caller_photo_png\0")
 
@@ -797,7 +797,7 @@ extension MLCallEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLCallEvent, rhs: MLCallEvent) -> Bool {
+  public static func ==(lhs: Maclink_CallEvent, rhs: Maclink_CallEvent) -> Bool {
     if lhs.callID != rhs.callID {return false}
     if lhs.state != rhs.state {return false}
     if lhs.callerName != rhs.callerName {return false}
@@ -808,11 +808,11 @@ extension MLCallEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
-extension MLCallEvent.State: SwiftProtobuf._ProtoNameProviding {
+extension Maclink_CallEvent.State: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0INCOMING\0\u{1}ACCEPTED\0\u{1}REJECTED\0\u{1}ENDED\0\u{1}OUTGOING\0")
 }
 
-extension MLAudioOffer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_AudioOffer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".AudioOffer"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}call_id\0\u{1}sdp\0")
 
@@ -839,7 +839,7 @@ extension MLAudioOffer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLAudioOffer, rhs: MLAudioOffer) -> Bool {
+  public static func ==(lhs: Maclink_AudioOffer, rhs: Maclink_AudioOffer) -> Bool {
     if lhs.callID != rhs.callID {return false}
     if lhs.sdp != rhs.sdp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -847,7 +847,7 @@ extension MLAudioOffer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   }
 }
 
-extension MLAudioAnswer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_AudioAnswer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".AudioAnswer"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}call_id\0\u{1}sdp\0")
 
@@ -874,7 +874,7 @@ extension MLAudioAnswer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLAudioAnswer, rhs: MLAudioAnswer) -> Bool {
+  public static func ==(lhs: Maclink_AudioAnswer, rhs: Maclink_AudioAnswer) -> Bool {
     if lhs.callID != rhs.callID {return false}
     if lhs.sdp != rhs.sdp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -882,7 +882,7 @@ extension MLAudioAnswer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 }
 
-extension MLIceCandidate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_IceCandidate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".IceCandidate"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}call_id\0\u{1}candidate\0\u{3}sdp_mid\0\u{3}sdp_mline_index\0")
 
@@ -917,7 +917,7 @@ extension MLIceCandidate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLIceCandidate, rhs: MLIceCandidate) -> Bool {
+  public static func ==(lhs: Maclink_IceCandidate, rhs: Maclink_IceCandidate) -> Bool {
     if lhs.callID != rhs.callID {return false}
     if lhs.candidate != rhs.candidate {return false}
     if lhs.sdpMid != rhs.sdpMid {return false}
@@ -927,7 +927,7 @@ extension MLIceCandidate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   }
 }
 
-extension MLHeartbeat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Maclink_Heartbeat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Heartbeat"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}sent_at\0")
 
@@ -950,7 +950,7 @@ extension MLHeartbeat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: MLHeartbeat, rhs: MLHeartbeat) -> Bool {
+  public static func ==(lhs: Maclink_Heartbeat, rhs: Maclink_Heartbeat) -> Bool {
     if lhs.sentAt != rhs.sentAt {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

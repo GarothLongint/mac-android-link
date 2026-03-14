@@ -4,7 +4,7 @@ package maclink;
 
 option java_package = "com.maclink.android.proto";
 option java_outer_classname = "MacLinkProto";
-option swift_prefix = "ML";
+option swift_prefix = "Maclink_";
 
 // ─── Envelope ────────────────────────────────────────────────────────────────
 // Every message sent over the WebSocket is wrapped in an Envelope.
