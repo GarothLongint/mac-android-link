@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var connectionManager: ConnectionManager
     @EnvironmentObject var notificationStore: NotificationStore
+    @EnvironmentObject var callStore: CallStore
     @State private var replyState: ReplyState? = nil
 
     struct ReplyState: Identifiable {
@@ -15,6 +16,12 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Active call banner (highest priority)
+            if let call = callStore.activeCall {
+                CallBanner(call: call, onAccept: { callStore.accept() }, onReject: { callStore.reject() })
+                Divider()
+            }
+
             // Pairing request banner (highest priority)
             if let pending = connectionManager.pairing.pendingDevice {
                 PairingBanner(pending: pending)
@@ -277,6 +284,67 @@ struct PairingBanner: View {
         }
         .padding(12)
         .background(Color.orange.opacity(0.08))
+    }
+}
+
+// MARK: - Call Banner
+
+struct CallBanner: View {
+    let call: CallStore.ActiveCall
+    let onAccept: () -> Void
+    let onReject: () -> Void
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                // Caller photo or fallback icon
+                if let photo = call.callerPhoto {
+                    Image(nsImage: photo)
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "phone.fill")
+                        .font(.title2)
+                        .foregroundStyle(.green)
+                        .frame(width: 40, height: 40)
+                        .background(Color.green.opacity(0.12))
+                        .clipShape(Circle())
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(call.state == .incoming ? "Połączenie przychodzące" : "Połączenie wychodzące")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(call.callerName.isEmpty ? call.callerNumber : call.callerName)
+                        .font(.subheadline).fontWeight(.semibold)
+                    if !call.callerName.isEmpty && !call.callerNumber.isEmpty {
+                        Text(call.callerNumber)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+            }
+
+            HStack {
+                if call.state == .incoming {
+                    Button("Odrzuć") { onReject() }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                    Button("Odbierz") { onAccept() }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                } else {
+                    Button("Zakończ") { onReject() }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(12)
+        .background(Color.green.opacity(0.08))
     }
 }
 

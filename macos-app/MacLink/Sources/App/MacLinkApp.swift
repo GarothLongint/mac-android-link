@@ -10,6 +10,7 @@ struct MacLinkApp: App {
             MenuBarView()
                 .environmentObject(appDelegate.connectionManager)
                 .environmentObject(appDelegate.notificationStore)
+                .environmentObject(appDelegate.callStore)
         }
         .menuBarExtraStyle(.window)
     }

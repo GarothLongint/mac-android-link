@@ -10,6 +10,7 @@ final class ConnectionManager: ObservableObject {
     @Published var serverState: NWListener.State = .setup
 
     weak var notificationStore: NotificationStore?
+    weak var callStore: CallStore?
     let pairing = PairingManager()
 
     private var listener: NWListener?
@@ -174,7 +175,9 @@ final class ConnectionManager: ObservableObject {
                 self.notificationStore?.receive(notification: n)
             }
         case .callEvent(let call):
-            print("[Server] Call event: \(call.state) from \(call.callerName)")
+            DispatchQueue.main.async {
+                self.callStore?.receive(callEvent: call)
+            }
         case .heartbeat:
             sendHeartbeatAck(on: connection)
         default:

@@ -6,6 +6,7 @@ import com.maclink.android.network.ConnectionState
 import com.maclink.android.network.MacLinkClient
 import com.maclink.android.network.NsdDiscovery
 import com.maclink.android.proto.MacLinkProto.Envelope
+import com.maclink.android.service.CallDetectorService
 import com.maclink.android.service.PhoneNotificationListenerService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 class MacLinkApplication : Application() {
     lateinit var client: MacLinkClient
     lateinit var discovery: NsdDiscovery
+    lateinit var callDetector: CallDetectorService
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -27,6 +29,11 @@ class MacLinkApplication : Application() {
 
         client = MacLinkClient(deviceName = deviceName, deviceId = deviceId)
         discovery = NsdDiscovery(this)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            callDetector = CallDetectorService(this)
+            callDetector.init { envelope -> client.send(envelope) }
+        }
 
         client.onEnvelopeReceived = { envelope -> handleIncoming(envelope) }
 
@@ -68,6 +75,17 @@ class MacLinkApplication : Application() {
                         actionKey = action.actionKey,
                         replyText = ""
                     )
+                }
+            }
+            Envelope.PayloadCase.CALL_EVENT -> {
+                val callEvent = envelope.callEvent
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+                    ::callDetector.isInitialized) {
+                    when (callEvent.state) {
+                        com.maclink.android.proto.MacLinkProto.CallEvent.State.ACCEPTED -> callDetector.answerCall()
+                        com.maclink.android.proto.MacLinkProto.CallEvent.State.REJECTED -> callDetector.rejectCall()
+                        else -> println("[App] CallEvent state: ${callEvent.state}")
+                    }
                 }
             }
             Envelope.PayloadCase.HANDSHAKE_ACK -> {
