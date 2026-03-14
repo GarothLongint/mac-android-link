@@ -22,7 +22,8 @@
         android:theme="@style/Theme.MacLink"
         android:allowBackup="true"
         android:supportsRtl="true"
-        android:icon="@android:mipmap/sym_def_app_icon">
+        android:icon="@android:mipmap/sym_def_app_icon"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".ui.MainActivity"

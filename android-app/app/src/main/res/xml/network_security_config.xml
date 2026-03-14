@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zezwala na ws:// (cleartext) w sieci lokalnej WiFi.
+     W Fazie 4 (Internet) przejdziemy na wss:// (TLS). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

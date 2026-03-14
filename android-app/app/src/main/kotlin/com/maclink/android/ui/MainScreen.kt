@@ -4,11 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.maclink.android.network.ConnectionState
 import com.maclink.android.network.MacLinkClient
@@ -22,6 +26,7 @@ fun MainScreen(
 ) {
     val connectionState by client.state.collectAsState()
     val devices by discovery.discoveredDevices.collectAsState()
+    var manualIp by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -75,6 +80,33 @@ fun MainScreen(
                         )
                     }
                 }
+            }
+
+            // Manual IP fallback
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("Połącz ręcznie (IP Maca)", style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = manualIp,
+                    onValueChange = { manualIp = it },
+                    placeholder = { Text("192.168.0.162") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Go
+                    ),
+                    keyboardActions = KeyboardActions(onGo = {
+                        if (manualIp.isNotBlank()) client.connect(manualIp.trim(), 9876)
+                    })
+                )
+                Button(onClick = {
+                    if (manualIp.isNotBlank()) client.connect(manualIp.trim(), 9876)
+                }) { Text("Połącz") }
             }
         }
     }

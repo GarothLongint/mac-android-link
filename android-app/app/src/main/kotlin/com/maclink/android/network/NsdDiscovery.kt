@@ -73,7 +73,13 @@ class NsdDiscovery(private val context: Context) {
         }
 
         override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-            val host = serviceInfo.host?.hostAddress ?: return
+            val rawHost = serviceInfo.host?.hostAddress ?: return
+            // Odrzuć adresy IPv6 (zawierają ':' lub '%') — użyj tylko IPv4
+            val host = if (rawHost.contains(':') || rawHost.contains('%')) {
+                println("[NSD] Pomijam IPv6: $rawHost")
+                return
+            } else rawHost
+
             val port = serviceInfo.port
             val device = MacDevice(serviceInfo.serviceName, host, port)
             println("[NSD] Resolved: $device")
