@@ -28,8 +28,11 @@ final class NotificationStore: ObservableObject {
         showSystemNotification(item)
     }
 
-    func dismiss(key: String) {
-        notifications.removeAll { $0.key == key }
+    func clearAll() {
+        notifications.removeAll()
+    }
+
+    func dismiss(key: String) {        notifications.removeAll { $0.key == key }
         sendDismiss(key: key)
     }
 

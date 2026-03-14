@@ -139,7 +139,7 @@ struct MenuBarView: View {
                 .foregroundStyle(.tertiary)
             Spacer()
             Button("Wyczyść") {
-                notificationStore.notifications.removeAll()
+                notificationStore.clearAll()
             }
             .buttonStyle(.plain)
             .font(.caption)
@@ -182,7 +182,7 @@ struct NotificationRow: View {
                         .overlay(
                             Text(notification.appName.prefix(1))
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(.accent)
+                                .foregroundStyle(Color.accentColor)
                         )
                 }
 
