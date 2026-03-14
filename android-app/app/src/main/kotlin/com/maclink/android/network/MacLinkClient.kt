@@ -71,8 +71,9 @@ class MacLinkClient(
         receiveJob = scope.launch {
             runCatching {
                 val s = Socket()
-                s.soTimeout = 0
+                s.soTimeout = 35_000        // 35s read timeout — wykryje martwy Mac szybko
                 s.keepAlive = true          // OS wykryje martwe połączenie
+                s.tcpNoDelay = true         // bez Nagle — mniejsze opóźnienia
                 s.connect(java.net.InetSocketAddress(host, port), 10_000)
                 socket = s
                 output = DataOutputStream(s.getOutputStream())
@@ -87,7 +88,15 @@ class MacLinkClient(
 
                 // Read loop: 4-byte length + body
                 while (isActive && !s.isClosed) {
-                    val length = runCatching { input.readInt() }.getOrNull() ?: break
+                    val length = try {
+                        input.readInt()
+                    } catch (e: java.net.SocketTimeoutException) {
+                        // soTimeout przekroczony — Mac nie odpowiedział, reconnect
+                        println("[TCP] Socket read timeout — reconnecting")
+                        break
+                    } catch (e: Exception) {
+                        break
+                    }
                     if (length <= 0 || length > 10_000_000) break
                     val body = ByteArray(length)
                     input.readFully(body)
@@ -144,7 +153,7 @@ class MacLinkClient(
     private fun startHeartbeat() {
         heartbeatJob = scope.launch {
             while (isActive) {
-                delay(20_000)  // co 20s — dobrze poniżej jakiegokolwiek network timeout
+                delay(10_000)  // co 10s — częściej żeby Mac nie dropował połączenia
                 val hb = Heartbeat.newBuilder().setSentAt(System.currentTimeMillis()).build()
                 send(Envelope.newBuilder()
                     .setId(UUID.randomUUID().toString())
@@ -159,7 +168,8 @@ class MacLinkClient(
 
     private fun scheduleReconnect() {
         val host = lastHost ?: return
-        val delayMs = minOf(2000L * (1 shl reconnectAttempt), 60_000L)
+        // Szybki reconnect: 1s, 2s, 4s, 8s, max 15s (nie 60s)
+        val delayMs = minOf(1000L * (1 shl reconnectAttempt), 15_000L)
         reconnectAttempt++
         println("[TCP] Reconnect in ${delayMs}ms (attempt $reconnectAttempt)")
         reconnectJob = scope.launch {

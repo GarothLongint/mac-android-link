@@ -17,7 +17,7 @@ final class ConnectionManager: ObservableObject {
     private var activeConnection: NWConnection?
     private let queue = DispatchQueue(label: "com.maclink.server", qos: .userInitiated)
     private var heartbeatTimer: DispatchSourceTimer?
-    private let heartbeatTimeout: TimeInterval = 45
+    private let heartbeatTimeout: TimeInterval = 30  // Android wysyła co 10s — 30s to 3 pominięte
 
     // MARK: - Server lifecycle
 

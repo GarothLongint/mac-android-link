@@ -7,7 +7,9 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.net.wifi.WifiManager
 import android.os.IBinder
+import android.os.PowerManager
 import com.maclink.android.MacLinkApplication
 import com.maclink.android.R
 import com.maclink.android.network.ConnectionState
@@ -38,6 +40,11 @@ class ConnectionService : Service() {
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var stateJob: Job? = null
 
+    // WiFi Lock — zapobiega throttlingowi WiFi gdy ekran wyłączony
+    private var wifiLock: WifiManager.WifiLock? = null
+    // CPU WakeLock — korutyny działają nawet gdy ekran wyłączony
+    private var wakeLock: PowerManager.WakeLock? = null
+
     override fun onCreate() {
         super.onCreate()
         println("[ConnectionService] onCreate — starting foreground")
@@ -48,6 +55,16 @@ class ConnectionService : Service() {
             android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
         )
         println("[ConnectionService] startForeground called")
+
+        // Trzymaj WiFi aktywne gdy ekran wyłączony
+        val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MacLink:WiFi")
+        wifiLock?.acquire()
+
+        // Trzymaj CPU aktywne (korutyny heartbeat)
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MacLink:CPU")
+        wakeLock?.acquire()
 
         val app = application as MacLinkApplication
         stateJob = scope.launch {
@@ -63,6 +80,8 @@ class ConnectionService : Service() {
 
     override fun onDestroy() {
         stateJob?.cancel()
+        wifiLock?.release()
+        wakeLock?.release()
         super.onDestroy()
     }
 
