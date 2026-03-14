@@ -56,11 +56,13 @@ class MacLinkClient(
 
     private fun doConnect(host: String, port: Int) {
         _state.value = ConnectionState.CONNECTING
-        println("[TCP] Connecting to $host:$port")
+        println("[TCP] Connecting to $host:$port (attempt ${reconnectAttempt + 1})")
 
         receiveJob = scope.launch {
             runCatching {
-                val s = Socket(host, port)
+                val s = Socket()
+                s.soTimeout = 0        // bez timeout — rozłączenie wykryjemy przez wyjątek
+                s.connect(java.net.InetSocketAddress(host, port), 10_000)
                 socket = s
                 output = DataOutputStream(s.getOutputStream())
                 val input = DataInputStream(s.getInputStream())
@@ -86,7 +88,7 @@ class MacLinkClient(
                     }
                 }
             }.onFailure { e ->
-                println("[TCP] Error: $e")
+                println("[TCP] Error connecting to $host:$port — ${e.javaClass.simpleName}: ${e.message}")
             }
 
             stopJobs()
@@ -131,7 +133,7 @@ class MacLinkClient(
     private fun startHeartbeat() {
         heartbeatJob = scope.launch {
             while (isActive) {
-                delay(30_000)
+                delay(20_000)  // co 20s — dobrze poniżej jakiegokolwiek network timeout
                 val hb = Heartbeat.newBuilder().setSentAt(System.currentTimeMillis()).build()
                 send(Envelope.newBuilder()
                     .setId(UUID.randomUUID().toString())

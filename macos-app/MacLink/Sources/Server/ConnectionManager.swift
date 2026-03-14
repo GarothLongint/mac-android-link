@@ -19,7 +19,7 @@ final class ConnectionManager: ObservableObject {
     // MARK: - Server lifecycle
 
     func startServer() {
-        // Plain TCP — no WebSocket layer. Protocol: 4-byte big-endian length + Protobuf bytes.
+        // Plain TCP dual-stack — 4-byte big-endian length + Protobuf bytes
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
 
@@ -34,6 +34,8 @@ final class ConnectionManager: ObservableObject {
         }
 
         listener.newConnectionHandler = { [weak self] connection in
+            let remote = connection.endpoint
+            print("[Server] ⬅️ Incoming connection from: \(remote)")
             self?.handleNewConnection(connection)
         }
 
@@ -71,9 +73,6 @@ final class ConnectionManager: ObservableObject {
         connection.start(queue: queue)
     }
 
-    // MARK: - Message receiving (length-prefixed binary Protobuf)
-
-    private func receiveNextMessage(on connection: NWConnection) {
     // MARK: - Message receiving (length-prefixed: 4 bytes big-endian + Protobuf data)
 
     private func receiveNextMessage(on connection: NWConnection) {

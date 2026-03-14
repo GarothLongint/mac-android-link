@@ -127,9 +127,15 @@ private fun ConnectionStatusCard(state: ConnectionState) {
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(label, color = color, fontWeight = FontWeight.Medium)
+            Text(
+                "v0.2.0-tcp",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

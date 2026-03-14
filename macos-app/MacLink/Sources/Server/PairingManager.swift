@@ -42,6 +42,10 @@ final class PairingManager: ObservableObject {
     /// `decision` callback receives `true` if user accepted.
     func requestPairing(id: String, name: String, decision: @escaping (Bool) -> Void) {
         DispatchQueue.main.async {
+            // Jeśli już czekamy na decyzję dla tego urządzenia — zignoruj duplikat
+            if let pending = self.pendingDevice, pending.id == id {
+                return
+            }
             self.pendingDevice = PendingDevice(id: id, name: name, onDecision: { accepted in
                 if accepted { self.trust(deviceId: id) }
                 decision(accepted)
