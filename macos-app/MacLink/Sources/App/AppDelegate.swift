@@ -17,12 +17,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         callStore.connectionManager = connectionManager
         callStore.onCallChanged = { [weak self] call in
             DispatchQueue.main.async {
-                if let call, call.state == .incoming {
-                    self?.showCallWindow(call: call)
+                if let call {
+                    if call.phase == .incoming {
+                        self?.showCallWindow()
+                    } else if call.phase == .active || call.phase == .outgoing {
+                        if self?.callWindow == nil {
+                            self?.showCallWindow()
+                        }
+                    }
                 } else {
                     self?.dismissCallWindow()
                 }
             }
+        }
+        callStore.showWindowAction = { [weak self] in
+            DispatchQueue.main.async { self?.showCallWindow() }
         }
         connectionManager.startServer()
         bonjour.start(port: ConnectionManager.port)
@@ -35,8 +44,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Call window (wyskakuje automatycznie przy przychodzącym połączeniu)
 
-    private func showCallWindow(call: CallStore.ActiveCall) {
-        dismissCallWindow()
+    private func showCallWindow() {
+        guard callWindow == nil else { return } // już otwarte
 
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 140),
@@ -44,7 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
-        panel.title = "Połączenie przychodzące"
+        panel.title = "Połączenie"
         panel.level = .floating
         panel.isMovableByWindowBackground = true
         panel.titlebarAppearsTransparent = true
@@ -52,7 +61,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.backgroundColor = .clear
         panel.center()
 
-        // Przesuń do prawego górnego rogu ekranu
+        // Prawy górny róg ekranu
         if let screen = NSScreen.main {
             let x = screen.visibleFrame.maxX - 340
             let y = screen.visibleFrame.maxY - 160
@@ -60,20 +69,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let view = NSHostingView(rootView:
-            CallWindowView(call: call,
-                           onAccept: { [weak self] in self?.callStore.accept(); self?.dismissCallWindow() },
-                           onReject:  { [weak self] in self?.callStore.reject();  self?.dismissCallWindow() })
-                .environmentObject(callStore)
+            CallWindowView(
+                callStore: callStore,
+                onAccept: { [weak self] in self?.callStore.accept() },
+                onReject:  { [weak self] in self?.callStore.reject() },
+                onHangUp:  { [weak self] in self?.callStore.hangUp() },
+                onClose:   { [weak self] in self?.closeCallWindowOnly() }
+            )
         )
         panel.contentView = view
         panel.orderFrontRegardless()
         callWindow = panel
 
-        // Dźwięk
         NSSound(named: .init("Glass"))?.play()
     }
 
     private func dismissCallWindow() {
+        callWindow?.close()
+        callWindow = nil
+    }
+
+    /// Zamknij okno ale NIE kończ rozmowy — można przywrócić z menu bar
+    private func closeCallWindowOnly() {
         callWindow?.close()
         callWindow = nil
     }

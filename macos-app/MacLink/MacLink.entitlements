@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Audio input (microphone) for call streaming -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <!-- Outgoing network connections (TCP to Android) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- Incoming network connections (TCP server) -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <!-- User notifications -->
+    <key>com.apple.security.application-groups</key>
+    <array/>
+</dict>
+</plist>

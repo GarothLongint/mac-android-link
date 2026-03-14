@@ -14,6 +14,13 @@ import androidx.annotation.RequiresApi
 import com.maclink.android.proto.MacLinkProto.CallEvent
 import com.maclink.android.proto.MacLinkProto.Envelope
 import com.google.protobuf.ByteString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -24,6 +31,9 @@ class CallDetectorService(private val context: Context) {
     private var currentNumber: String? = null
     private var currentCallerName: String? = null
     private var sendEnvelope: ((Envelope) -> Unit)? = null
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var watchdogJob: Job? = null
 
     fun init(send: (Envelope) -> Unit) {
         this.sendEnvelope = send
@@ -89,6 +99,7 @@ class CallDetectorService(private val context: Context) {
                         callerNumber = currentNumber ?: "",
                         photoBytes = null
                     )
+                    startCallWatchdog(id)
                 } else {
                     // New outgoing call
                     currentCallId = UUID.randomUUID().toString()
@@ -101,9 +112,12 @@ class CallDetectorService(private val context: Context) {
                         callerNumber = callerNumber,
                         photoBytes = photoBytes
                     )
+                    startCallWatchdog(currentCallId!!)
                 }
             }
             TelephonyManager.CALL_STATE_IDLE -> {
+                watchdogJob?.cancel()
+                watchdogJob = null
                 val id = currentCallId ?: return
                 sendCallEvent(
                     callId = id,
@@ -114,6 +128,33 @@ class CallDetectorService(private val context: Context) {
                 )
                 currentCallId = null
                 currentNumber = null
+            }
+        }
+    }
+
+    /** Watchdog: co 3s sprawdza czy rozmowa nadal aktywna. Jeśli nie → wysyła ENDED do Maca. */
+    @SuppressLint("MissingPermission")
+    private fun startCallWatchdog(callId: String) {
+        watchdogJob?.cancel()
+        watchdogJob = scope.launch {
+            while (isActive) {
+                delay(3000)
+                val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+                val stillInCall = try { tm.isInCall } catch (e: Exception) { true }
+                if (!stillInCall && currentCallId == callId) {
+                    println("[CallDetector] Watchdog: call $callId ended (TelecomManager.isInCall=false)")
+                    sendCallEvent(
+                        callId = callId,
+                        state = CallEvent.State.ENDED,
+                        callerName = "",
+                        callerNumber = currentNumber ?: "",
+                        photoBytes = null
+                    )
+                    currentCallId = null
+                    currentNumber = null
+                    watchdogJob = null
+                    break
+                }
             }
         }
     }

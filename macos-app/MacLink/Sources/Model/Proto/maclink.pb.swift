@@ -104,6 +104,14 @@ public struct Maclink_Envelope: Sendable {
     set {payload = .iceCandidate(newValue)}
   }
 
+  public var audioFrame: Maclink_AudioFrame {
+    get {
+      if case .audioFrame(let v)? = payload {return v}
+      return Maclink_AudioFrame()
+    }
+    set {payload = .audioFrame(newValue)}
+  }
+
   public var heartbeat: Maclink_Heartbeat {
     get {
       if case .heartbeat(let v)? = payload {return v}
@@ -123,6 +131,7 @@ public struct Maclink_Envelope: Sendable {
     case audioOffer(Maclink_AudioOffer)
     case audioAnswer(Maclink_AudioAnswer)
     case iceCandidate(Maclink_IceCandidate)
+    case audioFrame(Maclink_AudioFrame)
     case heartbeat(Maclink_Heartbeat)
 
   }
@@ -335,6 +344,24 @@ public struct Maclink_IceCandidate: Sendable {
   public init() {}
 }
 
+/// ─── Raw PCM audio streaming ──────────────────────────────────────────────────
+/// Used for real-time voice routing: Mac mic → Android & Android mic → Mac.
+/// Format: 16-bit signed PCM, 16 kHz, mono, little-endian.
+public struct Maclink_AudioFrame: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var callID: String = String()
+
+  /// 20 ms chunk = 640 bytes at 16 kHz
+  public var pcmData: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 /// ─── Heartbeat ────────────────────────────────────────────────────────────────
 public struct Maclink_Heartbeat: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -354,7 +381,7 @@ fileprivate let _protobuf_package = "maclink"
 
 extension Maclink_Envelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Envelope"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}timestamp\0\u{2}\u{8}handshake\0\u{3}handshake_ack\0\u{2}\u{9}notification\0\u{3}notification_action\0\u{4}\u{9}call_event\0\u{4}\u{a}audio_offer\0\u{3}audio_answer\0\u{3}ice_candidate\0\u{2}\u{8}heartbeat\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}timestamp\0\u{2}\u{8}handshake\0\u{3}handshake_ack\0\u{2}\u{9}notification\0\u{3}notification_action\0\u{4}\u{9}call_event\0\u{4}\u{a}audio_offer\0\u{3}audio_answer\0\u{3}ice_candidate\0\u{3}audio_frame\0\u{2}\u{7}heartbeat\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -468,6 +495,19 @@ extension Maclink_Envelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
           self.payload = .iceCandidate(v)
         }
       }()
+      case 43: try {
+        var v: Maclink_AudioFrame?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .audioFrame(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .audioFrame(v)
+        }
+      }()
       case 50: try {
         var v: Maclink_Heartbeat?
         var hadOneofValue = false
@@ -529,6 +569,10 @@ extension Maclink_Envelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     case .iceCandidate?: try {
       guard case .iceCandidate(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 42)
+    }()
+    case .audioFrame?: try {
+      guard case .audioFrame(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
     }()
     case .heartbeat?: try {
       guard case .heartbeat(let v)? = self.payload else { preconditionFailure() }
@@ -922,6 +966,41 @@ extension Maclink_IceCandidate: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if lhs.candidate != rhs.candidate {return false}
     if lhs.sdpMid != rhs.sdpMid {return false}
     if lhs.sdpMlineIndex != rhs.sdpMlineIndex {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Maclink_AudioFrame: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AudioFrame"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}call_id\0\u{3}pcm_data\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.callID) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.pcmData) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.callID.isEmpty {
+      try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
+    }
+    if !self.pcmData.isEmpty {
+      try visitor.visitSingularBytesField(value: self.pcmData, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Maclink_AudioFrame, rhs: Maclink_AudioFrame) -> Bool {
+    if lhs.callID != rhs.callID {return false}
+    if lhs.pcmData != rhs.pcmData {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

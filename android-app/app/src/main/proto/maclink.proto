@@ -20,6 +20,7 @@ message Envelope {
     AudioOffer         audio_offer        = 40;
     AudioAnswer        audio_answer       = 41;
     IceCandidate       ice_candidate      = 42;
+    AudioFrame         audio_frame        = 43;
     Heartbeat          heartbeat          = 50;
   }
 }
@@ -92,6 +93,14 @@ message IceCandidate {
   string candidate       = 2;
   string sdp_mid         = 3;
   int32  sdp_mline_index = 4;
+}
+
+// ─── Raw PCM audio streaming ──────────────────────────────────────────────────
+// Used for real-time voice routing: Mac mic → Android & Android mic → Mac.
+// Format: 16-bit signed PCM, 16 kHz, mono, little-endian.
+message AudioFrame {
+  string call_id = 1;
+  bytes  pcm_data = 2; // 20 ms chunk = 640 bytes at 16 kHz
 }
 
 // ─── Heartbeat ────────────────────────────────────────────────────────────────

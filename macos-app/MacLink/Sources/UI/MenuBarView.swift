@@ -18,7 +18,13 @@ struct MenuBarView: View {
         VStack(spacing: 0) {
             // Active call banner (highest priority)
             if let call = callStore.activeCall {
-                CallBanner(call: call, onAccept: { callStore.accept() }, onReject: { callStore.reject() })
+                CallBanner(
+                    call: call,
+                    onAccept: { callStore.accept() },
+                    onReject: { callStore.reject() },
+                    onHangUp: { callStore.hangUp() },
+                    onShowWindow: { callStore.showWindowAction?() }
+                )
                 Divider()
             }
 
@@ -293,6 +299,8 @@ struct CallBanner: View {
     let call: CallStore.ActiveCall
     let onAccept: () -> Void
     let onReject: () -> Void
+    let onHangUp: () -> Void
+    let onShowWindow: () -> Void
 
     var body: some View {
         VStack(spacing: 10) {
@@ -313,7 +321,7 @@ struct CallBanner: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(call.state == .incoming ? "Połączenie przychodzące" : "Połączenie wychodzące")
+                    Text(call.phase == .incoming ? "Połączenie przychodzące" : call.phase == .active ? "W trakcie rozmowy" : "Połączenie wychodzące")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text(call.callerName.isEmpty ? call.callerNumber : call.callerName)
@@ -325,10 +333,21 @@ struct CallBanner: View {
                     }
                 }
                 Spacer()
+
+                // Przywróć okno rozmowy (gdy aktywna)
+                if call.phase == .active || call.phase == .outgoing {
+                    Button(action: onShowWindow) {
+                        Image(systemName: "rectangle.and.arrow.up.right.and.arrow.down.left")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Pokaż okno rozmowy")
+                }
             }
 
             HStack {
-                if call.state == .incoming {
+                if call.phase == .incoming {
                     Button("Odrzuć") { onReject() }
                         .buttonStyle(.bordered)
                         .tint(.red)
@@ -336,8 +355,10 @@ struct CallBanner: View {
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
                 } else {
-                    Button("Zakończ") { onReject() }
+                    Button("Pokaż okno") { onShowWindow() }
                         .buttonStyle(.bordered)
+                    Button("Zakończ") { onHangUp() }
+                        .buttonStyle(.borderedProminent)
                         .tint(.red)
                 }
             }

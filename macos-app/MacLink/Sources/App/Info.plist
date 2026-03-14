@@ -22,6 +22,8 @@
 	<string>1</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MacLink używa mikrofonu do prowadzenia rozmów telefonicznych przez Maca.</string>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
 	<key>NSUserNotificationsUsageDescription</key>

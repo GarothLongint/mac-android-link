@@ -28,6 +28,7 @@ targets:
         LSUIElement: true                        # Menu bar only (no Dock icon)
         NSUserNotificationAlertStyle: alert
         NSUserNotificationsUsageDescription: "MacLink wyświetla powiadomienia z Twojego telefonu Android."
+        NSMicrophoneUsageDescription: "MacLink używa mikrofonu do prowadzenia rozmów telefonicznych przez Maca."
     settings:
       base:
         SWIFT_VERSION: "5.9"
@@ -35,6 +36,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.maclink.app
         ENABLE_HARDENED_RUNTIME: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: MacLink/MacLink.entitlements
     dependencies:
       - package: SwiftProtobuf
         product: SwiftProtobuf

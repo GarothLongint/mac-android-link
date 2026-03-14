@@ -2,30 +2,61 @@ package com.maclink.android.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 
 /**
  * Accessibility Service który potrafi programowo odebrać lub odrzucić połączenie.
- * Działa przez znalezienie i tapnięcie przycisku "Odbierz" na ekranie dialera Samsung/AOSP.
+ * Przeszukuje WSZYSTKIE okna (nie tylko rootInActiveWindow) żeby znaleźć
+ * przycisk odbierz/odrzuć w ekranie przychodzącego połączenia.
  *
  * Użytkownik musi włączyć w: Ustawienia → Dostępność → Zainstalowane aplikacje → MacLink
  */
 class CallAnswerAccessibilityService : AccessibilityService() {
 
     companion object {
+        private const val TAG = "MacLink.Accessibility"
+
         @Volatile var instance: CallAnswerAccessibilityService? = null
 
-        // Słowa kluczowe przycisku ODBIERANIA (różne języki i producenci)
-        private val ANSWER_KEYWORDS = listOf(
-            "answer", "odbierz", "accept", "odbiór", "odebrać",
-            "phone_answer", "btn_answer", "answer_call"
+        private val DIALER_PACKAGES = setOf(
+            "com.samsung.android.dialer",
+            "com.samsung.android.incallui",
+            "com.android.dialer",
+            "com.android.incallui",
+            "com.google.android.dialer",
+            "com.google.android.incallui"
         )
 
-        // Słowa kluczowe przycisku ODRZUCANIA
+        // Resource-id przycisku odbierania — Samsung / AOSP / Google
+        private val ANSWER_RESOURCE_IDS = listOf(
+            "com.samsung.android.dialer:id/answer_button",
+            "com.samsung.android.dialer:id/incoming_call_answer_button",
+            "com.samsung.android.incallui:id/answer_button",
+            "com.android.dialer:id/answer_button",
+            "com.android.incallui:id/answer_button",
+            "com.google.android.dialer:id/answer_button"
+        )
+
+        private val DECLINE_RESOURCE_IDS = listOf(
+            "com.samsung.android.dialer:id/decline_button",
+            "com.samsung.android.dialer:id/incoming_call_decline_button",
+            "com.samsung.android.incallui:id/decline_button",
+            "com.android.dialer:id/decline_button",
+            "com.android.incallui:id/decline_button",
+            "com.google.android.dialer:id/decline_button"
+        )
+
+        // Słowa kluczowe (contentDescription / text) w różnych językach
+        private val ANSWER_KEYWORDS = listOf(
+            "answer", "odbierz", "accept", "odbiór", "odebrać", "odebranie",
+            "phone_answer", "btn_answer", "answer_call", "accept call"
+        )
+
         private val REJECT_KEYWORDS = listOf(
-            "decline", "reject", "odrzuć", "zakończ", "end", "hang",
-            "btn_decline", "decline_call", "phone_decline"
+            "decline", "reject", "odrzuć", "zakończ", "end", "hang up",
+            "btn_decline", "decline_call", "phone_decline", "reject call"
         )
 
         fun answerCall(): Boolean = instance?.performAnswer() ?: false
@@ -35,9 +66,11 @@ class CallAnswerAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         instance = this
-        println("[Accessibility] MacLink Accessibility Service connected ✓")
+        Log.i(TAG, "MacLink Accessibility Service connected ✓")
         serviceInfo = serviceInfo.also {
-            it.flags = it.flags or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            it.flags = it.flags or
+                    AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                    AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
         }
     }
 
@@ -47,7 +80,11 @@ class CallAnswerAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        // Nie potrzebujemy monitorować — działamy na żądanie
+        // Loguj okna dialera żeby pomóc w debugowaniu
+        val pkg = event.packageName?.toString() ?: return
+        if (pkg in DIALER_PACKAGES && event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            Log.d(TAG, "Dialer window event from $pkg: ${event.className}")
+        }
     }
 
     override fun onInterrupt() {}
@@ -55,75 +92,101 @@ class CallAnswerAccessibilityService : AccessibilityService() {
     // MARK: - Answer / Reject
 
     fun performAnswer(): Boolean {
-        println("[Accessibility] performAnswer() called")
-        return clickByKeywords(ANSWER_KEYWORDS) || run {
-            // Fallback: symuluj przycisk słuchawki
-            println("[Accessibility] answer button not found — using KEYCODE_HEADSETHOOK")
-            false
-        }
+        Log.i(TAG, "performAnswer() called — searching all windows")
+        return clickInAllWindows(ANSWER_RESOURCE_IDS, ANSWER_KEYWORDS)
     }
 
     fun performReject(): Boolean {
-        println("[Accessibility] performReject() called")
-        return clickByKeywords(REJECT_KEYWORDS)
+        Log.i(TAG, "performReject() called — searching all windows")
+        return clickInAllWindows(DECLINE_RESOURCE_IDS, REJECT_KEYWORDS)
     }
 
-    // MARK: - UI traversal
+    // MARK: - Multi-window search
 
-    private fun clickByKeywords(keywords: List<String>): Boolean {
-        val root = rootInActiveWindow ?: return false
+    /**
+     * Przeszukuje WSZYSTKIE dostępne okna (nie tylko aktywne).
+     * Ważne przy zablokowanym ekranie lub gdy incoming call jest jako overlay.
+     */
+    private fun clickInAllWindows(resourceIds: List<String>, keywords: List<String>): Boolean {
+        // 1. Pobierz listę wszystkich okien
+        val allWindows = windows ?: emptyList()
+        Log.d(TAG, "Total accessible windows: ${allWindows.size}")
 
-        // Szukaj po contentDescription i text
-        for (keyword in keywords) {
-            val found = findNodeByKeyword(root, keyword)
+        for (window in allWindows) {
+            val root = window.root ?: continue
+            val pkgName = root.packageName?.toString() ?: ""
+            Log.d(TAG, "Window pkg=$pkgName title=${window.title}")
+
+            // Szukaj po resource-id (najbardziej precyzyjne)
+            for (resId in resourceIds) {
+                val nodes = root.findAccessibilityNodeInfosByViewId(resId)
+                if (nodes?.isNotEmpty() == true) {
+                    val node = nodes.first()
+                    val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    Log.i(TAG, "Clicked by resource-id '$resId' in pkg=$pkgName → $clicked")
+                    nodes.forEach { it.recycle() }
+                    root.recycle()
+                    return clicked
+                }
+            }
+
+            // Szukaj po tekście/contentDescription
+            val found = findNodeByKeywords(root, keywords)
             if (found != null) {
                 val clicked = found.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                println("[Accessibility] Clicked node '${found.contentDescription ?: found.text}' → $clicked")
+                Log.i(TAG, "Clicked by keyword '${found.contentDescription ?: found.text}' in pkg=$pkgName → $clicked")
                 found.recycle()
                 root.recycle()
                 return clicked
             }
+
+            root.recycle()
         }
 
-        // Szukaj po resource-id (Samsung dialer specifics)
-        val samsungIds = if (keywords === ANSWER_KEYWORDS) {
-            listOf("com.samsung.android.dialer:id/answer_button",
-                   "com.android.dialer:id/answer_button",
-                   "com.android.incallui:id/answer_button")
-        } else {
-            listOf("com.samsung.android.dialer:id/decline_button",
-                   "com.android.dialer:id/decline_button",
-                   "com.android.incallui:id/decline_button")
-        }
-
-        for (resId in samsungIds) {
-            val nodes = root.findAccessibilityNodeInfosByViewId(resId)
-            if (nodes?.isNotEmpty() == true) {
-                val clicked = nodes.first().performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                println("[Accessibility] Clicked by resource-id '$resId' → $clicked")
-                nodes.forEach { it.recycle() }
+        // 2. Fallback: rootInActiveWindow (stary sposób)
+        Log.w(TAG, "No button found in any window — trying rootInActiveWindow")
+        val root = rootInActiveWindow
+        if (root != null) {
+            for (resId in resourceIds) {
+                val nodes = root.findAccessibilityNodeInfosByViewId(resId)
+                if (nodes?.isNotEmpty() == true) {
+                    val node = nodes.first()
+                    val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    Log.i(TAG, "Clicked by resource-id '$resId' (fallback root) → $clicked")
+                    nodes.forEach { it.recycle() }
+                    root.recycle()
+                    return clicked
+                }
+            }
+            val found = findNodeByKeywords(root, keywords)
+            if (found != null) {
+                val clicked = found.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                Log.i(TAG, "Clicked by keyword (fallback root) → $clicked")
+                found.recycle()
                 root.recycle()
                 return clicked
             }
+            root.recycle()
         }
 
-        root.recycle()
+        Log.e(TAG, "Could not find answer/reject button in any window!")
         return false
     }
 
-    private fun findNodeByKeyword(node: AccessibilityNodeInfo, keyword: String): AccessibilityNodeInfo? {
+    private fun findNodeByKeywords(node: AccessibilityNodeInfo, keywords: List<String>): AccessibilityNodeInfo? {
         val desc = node.contentDescription?.toString()?.lowercase() ?: ""
         val text = node.text?.toString()?.lowercase() ?: ""
         val resId = node.viewIdResourceName?.lowercase() ?: ""
 
-        if ((desc.contains(keyword) || text.contains(keyword) || resId.contains(keyword))
-            && node.isClickable) {
+        if (node.isClickable && keywords.any { kw ->
+            desc.contains(kw) || text.contains(kw) || resId.contains(kw)
+        }) {
             return AccessibilityNodeInfo.obtain(node)
         }
 
         for (i in 0 until node.childCount) {
             val child = node.getChild(i) ?: continue
-            val found = findNodeByKeyword(child, keyword)
+            val found = findNodeByKeywords(child, keywords)
             child.recycle()
             if (found != null) return found
         }

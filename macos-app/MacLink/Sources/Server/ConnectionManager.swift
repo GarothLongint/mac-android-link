@@ -174,6 +174,8 @@ final class ConnectionManager: ObservableObject {
             DispatchQueue.main.async {
                 self.notificationStore?.receive(notification: n)
             }
+        case .audioFrame(let frame):
+            AudioEngine.shared.receiveAudioFrame(frame.pcmData)
         case .callEvent(let call):
             DispatchQueue.main.async {
                 self.callStore?.receive(callEvent: call)

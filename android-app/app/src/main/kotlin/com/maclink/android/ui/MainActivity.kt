@@ -35,6 +35,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val requestRecordAudioPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        println("[MainActivity] RECORD_AUDIO granted=$granted")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,6 +54,7 @@ class MainActivity : ComponentActivity() {
 
         requestNotificationsAndStart()
         requestPhonePermission()
+        requestRecordAudio()
 
         setContent {
             MacLinkTheme {
@@ -60,6 +67,13 @@ class MainActivity : ComponentActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
             != PackageManager.PERMISSION_GRANTED) {
             requestPhonePermission.launch(Manifest.permission.READ_PHONE_STATE)
+        }
+    }
+
+    private fun requestRecordAudio() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
 
