@@ -43,11 +43,16 @@ class MacLinkClient(
         lastHost = host
         lastPort = port
         reconnectJob?.cancel()
+        receiveJob?.cancel()               // anuluj poprzednie połączenie
+        runCatching { socket?.close() }    // zamknij stary socket
+        socket = null
         doConnect(host, port)
     }
 
     fun disconnect() {
         lastHost = null
+        reconnectJob?.cancel()
+        receiveJob?.cancel()
         stopJobs()
         runCatching { socket?.close() }
         socket = null
@@ -61,7 +66,8 @@ class MacLinkClient(
         receiveJob = scope.launch {
             runCatching {
                 val s = Socket()
-                s.soTimeout = 0        // bez timeout — rozłączenie wykryjemy przez wyjątek
+                s.soTimeout = 0
+                s.keepAlive = true          // OS wykryje martwe połączenie
                 s.connect(java.net.InetSocketAddress(host, port), 10_000)
                 socket = s
                 output = DataOutputStream(s.getOutputStream())
