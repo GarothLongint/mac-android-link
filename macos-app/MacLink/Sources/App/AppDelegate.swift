@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         requestNotificationPermission()
         connectionManager.notificationStore = notificationStore
+        notificationStore.connectionManager = connectionManager
         connectionManager.startServer()
     }
 

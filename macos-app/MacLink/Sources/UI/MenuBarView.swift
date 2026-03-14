@@ -3,11 +3,27 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var connectionManager: ConnectionManager
     @EnvironmentObject var notificationStore: NotificationStore
+    @State private var replyState: ReplyState? = nil
+
+    struct ReplyState: Identifiable {
+        let id = UUID()
+        let notificationKey: String
+        let actionKey: String
+        let appName: String
+        var text: String = ""
+    }
 
     var body: some View {
         VStack(spacing: 0) {
+            // Pairing request banner (highest priority)
+            if let pending = connectionManager.pairing.pendingDevice {
+                PairingBanner(pending: pending)
+                Divider()
+            }
+
             header
             Divider()
+
             if notificationStore.notifications.isEmpty {
                 emptyState
             } else {
@@ -17,6 +33,19 @@ struct MenuBarView: View {
             footer
         }
         .frame(width: 360)
+        // Reply sheet
+        .sheet(item: $replyState) { state in
+            ReplySheet(state: state) { text in
+                notificationStore.performAction(
+                    notificationKey: state.notificationKey,
+                    actionKey: state.actionKey,
+                    replyText: text
+                )
+                replyState = nil
+            } onCancel: {
+                replyState = nil
+            }
+        }
     }
 
     // MARK: - Header
@@ -58,12 +87,35 @@ struct MenuBarView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(notificationStore.notifications) { notif in
-                    NotificationRow(notification: notif)
+                    NotificationRow(
+                        notification: notif,
+                        onAction: { key, actionKey in
+                            handleAction(notifKey: key, actionKey: actionKey, notif: notif)
+                        },
+                        onDismiss: {
+                            notificationStore.dismiss(key: notif.key)
+                        }
+                    )
                     Divider().padding(.leading, 52)
                 }
             }
         }
         .frame(maxHeight: 420)
+    }
+
+    private func handleAction(notifKey: String, actionKey: String, notif: PhoneNotification) {
+        // If action looks like a reply (label contains "Odpow" or "Reply"), show reply sheet
+        let action = notif.actions.first { $0.key == actionKey }
+        let label = action?.label.lowercased() ?? ""
+        if label.contains("odpow") || label.contains("reply") || label.contains("odpisz") {
+            replyState = ReplyState(
+                notificationKey: notifKey,
+                actionKey: actionKey,
+                appName: notif.appName
+            )
+        } else {
+            notificationStore.performAction(notificationKey: notifKey, actionKey: actionKey)
+        }
     }
 
     private var emptyState: some View {
@@ -109,43 +161,150 @@ struct MenuBarView: View {
 
 struct NotificationRow: View {
     let notification: PhoneNotification
+    var onAction: ((String, String) -> Void)? = nil // (notifKey, actionKey)
+    var onDismiss: (() -> Void)? = nil
+
+    @State private var isExpanded = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            // App icon placeholder
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.accentColor.opacity(0.15))
-                .frame(width: 32, height: 32)
-                .overlay(
-                    Text(notification.appName.prefix(1))
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.accent)
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text(notification.appName)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(notification.postedAt, style: .relative)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 10) {
+                // App icon (letter placeholder or actual icon)
+                if let iconData = notification.iconData, let nsImage = NSImage(data: iconData) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                } else {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.accentColor.opacity(0.15))
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text(notification.appName.prefix(1))
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.accent)
+                        )
                 }
-                Text(notification.title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
-                if !notification.body.isEmpty {
-                    Text(notification.body)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(notification.appName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(notification.postedAt, style: .relative)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+
+                        // Dismiss button
+                        Button {
+                            onDismiss?()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Text(notification.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    if !notification.body.isEmpty {
+                        Text(notification.body)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(isExpanded ? 8 : 2)
+                    }
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+            .onTapGesture { isExpanded.toggle() }
+
+            // Action buttons
+            if !notification.actions.isEmpty {
+                HStack(spacing: 8) {
+                    ForEach(notification.actions) { action in
+                        Button(action.label) {
+                            onAction?(notification.key, action.key)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                }
+                .padding(.leading, 58)
+                .padding(.bottom, 8)
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - Pairing Banner
+
+struct PairingBanner: View {
+    let pending: PairingManager.PendingDevice
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "iphone.badge.play")
+                    .font(.title2)
+                    .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Nowe urządzenie")
+                        .font(.subheadline).fontWeight(.semibold)
+                    Text("\(pending.name) chce się połączyć")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            HStack {
+                Button("Odrzuć") {
+                    pending.onDecision(false)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+
+                Button("Zaufaj i połącz") {
+                    pending.onDecision(true)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(12)
+        .background(Color.orange.opacity(0.08))
+    }
+}
+
+// MARK: - Reply Sheet
+
+struct ReplySheet: View {
+    let state: MenuBarView.ReplyState
+    let onSend: (String) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Odpowiedz przez \(state.appName)")
+                .font(.headline)
+
+            TextEditor(text: .constant(state.text))
+                .frame(height: 80)
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.3)))
+
+            HStack {
+                Button("Anuluj", action: onCancel).keyboardShortcut(.escape)
+                Spacer()
+                Button("Wyślij") { onSend(state.text) }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.return)
+            }
+        }
+        .padding(20)
+        .frame(width: 340)
     }
 }

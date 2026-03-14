@@ -5,6 +5,7 @@ import Combine
 /// In-memory store for notifications received from Android.
 final class NotificationStore: ObservableObject {
     @Published private(set) var notifications: [PhoneNotification] = []
+    weak var connectionManager: ConnectionManager?
 
     func receive(notification n: Maclink_Notification) {
         let item = PhoneNotification(
@@ -14,7 +15,8 @@ final class NotificationStore: ObservableObject {
             title: n.title,
             body: n.text,
             postedAt: Date(timeIntervalSince1970: Double(n.postedAt) / 1000),
-            actions: n.actions.map { NotificationActionItem(key: $0.actionKey, label: $0.label) }
+            actions: n.actions.map { NotificationActionItem(key: $0.actionKey, label: $0.label) },
+            iconData: n.iconPng.isEmpty ? nil : Data(n.iconPng)
         )
 
         DispatchQueue.main.async {
@@ -28,6 +30,20 @@ final class NotificationStore: ObservableObject {
 
     func dismiss(key: String) {
         notifications.removeAll { $0.key == key }
+        sendDismiss(key: key)
+    }
+
+    /// Called by macOS when user clicks a notification action (e.g. Reply)
+    func performAction(notificationKey: String, actionKey: String, replyText: String = "") {
+        connectionManager?.sendNotificationAction(
+            notificationKey: notificationKey,
+            actionKey: actionKey,
+            replyText: replyText
+        )
+    }
+
+    private func sendDismiss(key: String) {
+        connectionManager?.sendDismiss(notificationKey: key)
     }
 
     // MARK: - System banner
@@ -58,6 +74,7 @@ struct PhoneNotification: Identifiable {
     let body: String
     let postedAt: Date
     let actions: [NotificationActionItem]
+    let iconData: Data?          // PNG ikony aplikacji (opcjonalne)
 }
 
 struct NotificationActionItem: Identifiable {

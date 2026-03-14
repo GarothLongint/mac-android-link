@@ -8,7 +8,14 @@ ANDROID_DIR="$SCRIPT_DIR/../android-app"
 echo "🔍 Sprawdzam środowisko Android..."
 
 # Android Studio
-if [ ! -d "/Applications/Android Studio.app" ]; then
+ANDROID_STUDIO_PATH=""
+if [ -d "/Applications/Android Studio.app" ]; then
+    ANDROID_STUDIO_PATH="/Applications/Android Studio.app"
+elif [ -d "$HOME/Applications/Android Studio.app" ]; then
+    ANDROID_STUDIO_PATH="$HOME/Applications/Android Studio.app"
+fi
+
+if [ -z "$ANDROID_STUDIO_PATH" ]; then
     echo ""
     echo "❌ Android Studio nie jest zainstalowane."
     echo ""
@@ -26,7 +33,7 @@ if [ ! -d "/Applications/Android Studio.app" ]; then
     exit 1
 fi
 
-echo "✅ Android Studio zainstalowane"
+echo "✅ Android Studio: $ANDROID_STUDIO_PATH"
 
 # Sprawdź SDK
 ANDROID_SDK="$HOME/Library/Android/sdk"
@@ -41,7 +48,7 @@ echo "✅ Android SDK: $ANDROID_SDK"
 # Otwórz projekt
 echo ""
 echo "📂 Otwieranie projektu Android w Android Studio..."
-open -a "Android Studio" "$ANDROID_DIR"
+open -a "$ANDROID_STUDIO_PATH" "$ANDROID_DIR"
 
 echo ""
 echo "✅ Android Studio powinno się otworzyć z projektem"

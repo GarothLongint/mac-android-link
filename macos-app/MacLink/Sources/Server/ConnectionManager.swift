@@ -10,6 +10,7 @@ final class ConnectionManager: ObservableObject {
     @Published var serverState: NWListener.State = .setup
 
     weak var notificationStore: NotificationStore?
+    let pairing = PairingManager()
 
     private var listener: NWListener?
     private var activeConnection: NWConnection?
@@ -119,15 +120,36 @@ final class ConnectionManager: ObservableObject {
     private func handleHandshake(_ hs: Maclink_Handshake, on connection: NWConnection) {
         print("[Server] Handshake from \(hs.deviceName) (v\(hs.version))")
 
-        let device = AndroidDevice(id: hs.deviceID, name: hs.deviceName)
+        if pairing.isTrusted(deviceId: hs.deviceID) {
+            acceptDevice(id: hs.deviceID, name: hs.deviceName, on: connection)
+        } else {
+            pairing.requestPairing(id: hs.deviceID, name: hs.deviceName) { [weak self] accepted in
+                if accepted {
+                    self?.acceptDevice(id: hs.deviceID, name: hs.deviceName, on: connection)
+                } else {
+                    self?.rejectDevice(reason: "Odrzucono przez użytkownika", on: connection)
+                }
+            }
+        }
+    }
+
+    private func acceptDevice(id: String, name: String, on connection: NWConnection) {
+        let device = AndroidDevice(id: id, name: name)
         DispatchQueue.main.async { self.connectedDevice = device }
 
         var ack = Maclink_HandshakeAck()
         ack.accepted = true
         ack.macName = Host.current().localizedName ?? "Mac"
         ack.macID = DeviceIdentity.id
-
         sendEnvelope(ack.asEnvelope(), on: connection)
+    }
+
+    private func rejectDevice(reason: String, on connection: NWConnection) {
+        var ack = Maclink_HandshakeAck()
+        ack.accepted = false
+        ack.rejectReason = reason
+        sendEnvelope(ack.asEnvelope(), on: connection)
+        connection.cancel()
     }
 
     // MARK: - Sending
@@ -135,6 +157,25 @@ final class ConnectionManager: ObservableObject {
     func send(_ envelope: Maclink_Envelope) {
         guard let connection = activeConnection else { return }
         sendEnvelope(envelope, on: connection)
+    }
+
+    func sendNotificationAction(notificationKey: String, actionKey: String, replyText: String) {
+        var action = Maclink_NotificationAction()
+        action.notificationKey = notificationKey
+        action.actionKey = actionKey
+        action.label = actionKey
+        action.replyText = replyText
+
+        var env = Maclink_Envelope()
+        env.id = UUID().uuidString
+        env.timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+        env.notificationAction = action
+        send(env)
+    }
+
+    func sendDismiss(notificationKey: String) {
+        // Reuse NotificationAction with special actionKey "dismiss"
+        sendNotificationAction(notificationKey: notificationKey, actionKey: "dismiss", replyText: "")
     }
 
     private func sendEnvelope(_ envelope: Maclink_Envelope, on connection: NWConnection) {
