@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 class ConnectionService : Service() {
 
     companion object {
-        const val CHANNEL_ID = "maclink_connection_v2"
+        const val CHANNEL_ID = "maclink_connection_v3"   // v3 = IMPORTANCE_LOW + FLAG_NO_CLEAR
         const val NOTIF_ID = 1
 
         fun start(context: Context) {
@@ -93,12 +93,13 @@ class ConnectionService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Stan połączenia MacLink",
-            NotificationManager.IMPORTANCE_DEFAULT  // DEFAULT = widoczna ikonka w pasku
+            NotificationManager.IMPORTANCE_LOW  // LOW = widoczna, bez dźwięku, nie można wyłączyć z poziomu swipe
         ).apply {
             description = "Pokazuje czy MacLink jest połączony z komputerem Mac"
             setShowBadge(false)
-            setSound(null, null)         // bez dźwięku
-            enableVibration(false)       // bez wibracji
+            setSound(null, null)
+            enableVibration(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
@@ -121,14 +122,23 @@ class ConnectionService : Service() {
                 "MacLink rozłączony" to "Dotknij aby otworzyć aplikację"
         }
 
-        return Notification.Builder(this, CHANNEL_ID)
+        val notification = Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_maclink_status)
             .setContentTitle(title)
             .setContentText(text)
             .setContentIntent(tapIntent)
             .setOngoing(true)
+            .setAutoCancel(false)
             .setShowWhen(false)
+            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
+
+        // FLAG_NO_CLEAR — dodatkowa ochrona przed usunięciem przez użytkownika
+        notification.flags = notification.flags or
+                Notification.FLAG_ONGOING_EVENT or
+                Notification.FLAG_NO_CLEAR
+
+        return notification
     }
 
     private fun updateNotification(state: ConnectionState) {
