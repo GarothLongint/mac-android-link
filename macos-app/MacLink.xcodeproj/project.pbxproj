@@ -10,6 +10,7 @@
 		17DF7DB10E3B35AA772CA716 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FECEA2ABAE2C6AAE7F7F5084 /* MenuBarView.swift */; };
 		433D7C0EA03266D8836698B7 /* MacLinkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05725C34D8251CC33FB2687C /* MacLinkApp.swift */; };
 		B21BA18B9A6ADF7B372CE63C /* BonjourBroadcaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */; };
+		B4DC3BF9812D0789A2FAC1A3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7E2E333059CB1B9773466C35 /* Assets.xcassets */; };
 		C9934DEFC6750F87B1BC2BEA /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2079080CB294A91D469F888C /* ConnectionManager.swift */; };
 		DF4EF7E2A2D1A4D958E6136A /* NotificationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B154332E1BB68F0714207C /* NotificationStore.swift */; };
 		E1D6E1AC4E3C67CFFB1D738C /* PairingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DADE7B2324B7872E851BDF55 /* PairingManager.swift */; };
@@ -23,6 +24,7 @@
 		2079080CB294A91D469F888C /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		4035603C464787BCA6456EA4 /* BonjourBroadcaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourBroadcaster.swift; sourceTree = "<group>"; };
 		76B154332E1BB68F0714207C /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
+		7E2E333059CB1B9773466C35 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		96B5EEF9E6B7C9BE9BE84928 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A0A7485C4278E11560E673F0 /* MacLink.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacLink.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0395BEF3B139E68F511F071 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -59,6 +61,14 @@
 				05725C34D8251CC33FB2687C /* MacLinkApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		3F0E156461E858CF0F994155 /* MacLink */ = {
+			isa = PBXGroup;
+			children = (
+				7E2E333059CB1B9773466C35 /* Assets.xcassets */,
+			);
+			path = MacLink;
 			sourceTree = "<group>";
 		};
 		5762249D7E47599723F7D5AB /* Sources */ = {
@@ -103,6 +113,7 @@
 		B2A23EF113C80A4A823E6844 = {
 			isa = PBXGroup;
 			children = (
+				3F0E156461E858CF0F994155 /* MacLink */,
 				5762249D7E47599723F7D5AB /* Sources */,
 				B84D35CBB112F938ADD70BB7 /* Products */,
 			);
@@ -140,6 +151,7 @@
 			buildConfigurationList = 069066D4EC9273E6F7C874D5 /* Build configuration list for PBXNativeTarget "MacLink" */;
 			buildPhases = (
 				2C087F13C5E6CF0214DBA432 /* Sources */,
+				F4DEBBBACFBD39A36E3A3035 /* Resources */,
 				D0087D603EC7C559DBACBCD3 /* Frameworks */,
 			);
 			buildRules = (
@@ -186,6 +198,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F4DEBBBACFBD39A36E3A3035 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B4DC3BF9812D0789A2FAC1A3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2C087F13C5E6CF0214DBA432 /* Sources */ = {
