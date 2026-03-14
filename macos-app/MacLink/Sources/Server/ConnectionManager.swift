@@ -16,11 +16,13 @@ final class ConnectionManager: ObservableObject {
     private var activeConnection: NWConnection?
     private let queue = DispatchQueue(label: "com.maclink.server", qos: .userInitiated)
     private var heartbeatTimer: DispatchSourceTimer?
-    private let heartbeatTimeout: TimeInterval = 60  // s bez wiadomości = rozłącz
+    private let heartbeatTimeout: TimeInterval = 45  // 2 nieodebrane heartbeaty (co 20s)
+    private var pathMonitor: NWPathMonitor?
 
     // MARK: - Server lifecycle
 
     func startServer() {
+        startPathMonitor()
         // Plain TCP dual-stack — 4-byte big-endian length + Protobuf bytes
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
@@ -47,8 +49,26 @@ final class ConnectionManager: ObservableObject {
     }
 
     func stopServer() {
+        pathMonitor?.cancel()
         listener?.cancel()
         activeConnection?.cancel()
+        stopHeartbeatTimer()
+    }
+
+    // Monitoruje stan sieci — gdy WiFi/sieć zniknie, rozłącz urządzenie od razu
+    private func startPathMonitor() {
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard let self else { return }
+            if path.status != .satisfied && self.connectedDevice != nil {
+                print("[Server] 🔌 Sieć niedostępna — rozłączam urządzenie")
+                self.activeConnection?.cancel()
+                self.stopHeartbeatTimer()
+                DispatchQueue.main.async { self.connectedDevice = nil }
+            }
+        }
+        monitor.start(queue: queue)
+        pathMonitor = monitor
     }
 
     // MARK: - Connection handling
