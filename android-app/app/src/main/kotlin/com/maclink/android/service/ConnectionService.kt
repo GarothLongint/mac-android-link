@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import com.maclink.android.MacLinkApplication
+import com.maclink.android.R
 import com.maclink.android.network.ConnectionState
 import com.maclink.android.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
@@ -82,19 +83,19 @@ class ConnectionService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val (icon, title, text) = when (state) {
+        val (title, text) = when (state) {
             ConnectionState.CONNECTED    ->
-                Triple(android.R.drawable.stat_sys_data_connected, "MacLink połączony", "Powiadomienia są przesyłane do Maca ✓")
+                "MacLink połączony" to "Powiadomienia są przesyłane do Maca ✓"
             ConnectionState.CONNECTING   ->
-                Triple(android.R.drawable.stat_sys_warning, "MacLink — łączenie…", "Trwa nawiązywanie połączenia z Makiem")
+                "MacLink — łączenie…" to "Trwa nawiązywanie połączenia z Makiem"
             ConnectionState.ERROR        ->
-                Triple(android.R.drawable.stat_notify_error, "MacLink — błąd połączenia", "Dotknij aby otworzyć aplikację")
+                "MacLink — błąd połączenia" to "Dotknij aby otworzyć aplikację"
             ConnectionState.DISCONNECTED ->
-                Triple(android.R.drawable.stat_sys_warning, "MacLink rozłączony", "Dotknij aby otworzyć aplikację")
+                "MacLink rozłączony" to "Dotknij aby otworzyć aplikację"
         }
 
         return Notification.Builder(this, CHANNEL_ID)
-            .setSmallIcon(icon)
+            .setSmallIcon(R.drawable.ic_maclink_status)
             .setContentTitle(title)
             .setContentText(text)
             .setContentIntent(tapIntent)

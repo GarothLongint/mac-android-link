@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon: laptop + wifi (biały/transparentny — wymagane przez Android) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Laptop body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4,6h16v10H4z"/>
+    <!-- Laptop screen (cutout) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0"
+        android:pathData="M5,7h14v8H5z"/>
+    <!-- Laptop base -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2,17h20v1.5c0,0.83-0.67,1.5-1.5,1.5h-17C2.67,20,2,19.33,2,18.5V17z"/>
+    <!-- WiFi arc (small) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,9.5 a2.5,2.5 0 1,1 0,0.01"/>
+</vector>
