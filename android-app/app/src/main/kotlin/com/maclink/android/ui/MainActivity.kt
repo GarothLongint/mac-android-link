@@ -1,18 +1,29 @@
 package com.maclink.android.ui
 
-import android.app.Activity
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.maclink.android.MacLinkApplication
-import com.maclink.android.network.NsdDiscovery
 import com.maclink.android.service.ConnectionService
 import com.maclink.android.service.PhoneNotificationListenerService
 
 class MainActivity : ComponentActivity() {
+
+    private val requestNotifPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        println("[MainActivity] POST_NOTIFICATIONS granted=$granted")
+        ConnectionService.start(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -20,18 +31,33 @@ class MainActivity : ComponentActivity() {
         val app = application as MacLinkApplication
         PhoneNotificationListenerService.client = app.client
 
-        // Ask for notification access if not granted
         if (!isNotificationListenerEnabled()) {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
 
         app.discovery.startDiscovery()
-        ConnectionService.start(this)  // ikonka w pasku statusu
+        requestNotificationsAndStart()
 
         setContent {
             MacLinkTheme {
                 MainScreen(client = app.client, discovery = app.discovery)
             }
+        }
+    }
+
+    private fun requestNotificationsAndStart() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (granted) {
+                ConnectionService.start(this)
+            } else {
+                requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            ConnectionService.start(this)
         }
     }
 
@@ -43,8 +69,7 @@ class MainActivity : ComponentActivity() {
 
     private fun isNotificationListenerEnabled(): Boolean {
         val enabledListeners = Settings.Secure.getString(
-            contentResolver,
-            "enabled_notification_listeners"
+            contentResolver, "enabled_notification_listeners"
         ) ?: return false
         return enabledListeners.contains(packageName)
     }
